@@ -1,0 +1,144 @@
+﻿@model List<Kanban.Models.Column>
+
+@{
+    ViewData["Title"] = "Kanban";
+}
+
+<h2 class="text-center mb-4">Quadro Kanban</h2>
+
+<!-- Botão para adicionar card -->
+<button id="addCardBtn" class="btn btn-success mb-3">Adicionar Card</button>
+
+<!-- Container do Kanban -->
+<div id="myKanban"></div>
+
+<!-- Modal de edição -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editCardForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Card</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="Id" id="editCardId" />
+                    <div class="mb-2">
+                        <input type="text" name="Title" id="editCardTitle" class="form-control" required />
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="Description" id="editCardDescription" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Inicializa o Kanban
+        var kanban = new jKanban({
+          element: '#myKanban',
+          boards: [
+            { id: '_todo', title: 'To Do', item: [] },
+            { id: '_doing', title: 'Doing', item: [] },
+            { id: '_done', title: 'Done', item: [] }
+          ]
+        });
+
+        // ➡️ Adicionar card
+        document.getElementById("addCardBtn").addEventListener("click", function(){
+          const tempId = Date.now();
+          const title = prompt("Digite o título do card:");
+          const description = prompt("Digite a descrição do card:");
+
+          if (!title) return;
+
+          // Cria visualmente
+          kanban.addElement('_todo', {
+            id: 'card' + tempId,
+            title: `
+              <div>
+                <strong>${title}</strong><br>
+                <small>${description || ""}</small>
+                <span class="btn-delete" onclick="deleteCard(${tempId})">🗑️</span>
+              </div>`
+          });
+
+          // Salva no banco e atualiza ID real
+          fetch('/Card/Create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `Title=${title}&Description=${description}&ColumnId=1`
+          })
+          .then(res => res.json())
+          .then(data => {
+            document.querySelector(`[data-eid="card${tempId}"]`)
+                    .setAttribute("data-eid", "card" + data.id);
+          });
+        });
+
+        // ➡️ Editar card ao clicar no card inteiro
+        kanban.on('click', function(el){
+          const cardId = el.dataset.eid.replace('card','');
+          const cardTitle = el.querySelector("strong")?.innerText || el.innerText;
+          const cardDescription = el.querySelector("small")?.innerText || "";
+
+          document.getElementById("editCardId").value = cardId;
+          document.getElementById("editCardTitle").value = cardTitle;
+          document.getElementById("editCardDescription").value = cardDescription;
+
+          const modal = new bootstrap.Modal(document.getElementById("editModal"));
+          modal.show();
+        });
+
+        // ➡️ Salvar edição
+        document.getElementById("editCardForm").addEventListener("submit", function(e){
+          e.preventDefault();
+
+          const id = document.getElementById("editCardId").value;
+          const title = document.getElementById("editCardTitle").value;
+          const description = document.getElementById("editCardDescription").value;
+
+          fetch('/Card/Edit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `Id=${id}&Title=${title}&Description=${description}`
+          }).then(() => {
+            document.querySelector(`[data-eid="card${id}"]`).innerHTML =
+              `<div>
+                 <strong>${title}</strong><br>
+                 <small>${description}</small>
+                 <span class="btn-delete" onclick="deleteCard(${id})">🗑️</span>
+               </div>`;
+            bootstrap.Modal.getInstance(document.getElementById("editModal")).hide();
+          });
+        });
+
+        // ➡️ Excluir card
+        function deleteCard(id){
+          kanban.removeElement('card' + id);
+          fetch('/Card/Delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'id=' + id
+          });
+        }
+
+        // ➡️ Mover card
+        kanban.on('dragend', function(el){
+          const cardId = el.dataset.eid.replace('card','');
+          const newColumn = el.parentElement.parentElement.getAttribute('data-id');
+
+          fetch('/Card/Move', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `id=${cardId}&columnId=${newColumn}`
+          });
+        });
+    </script>
+}

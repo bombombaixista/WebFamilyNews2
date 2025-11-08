@@ -1,0 +1,71 @@
+﻿@model List<Kanban.Models.Column>
+
+@{
+    ViewData["Title"] = "Quadro Kanban";
+}
+
+<h2>Quadro Kanban</h2>
+
+<div class="row">
+    @foreach (var column in Model)
+    {
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">@column.Name</h5>
+                </div>
+
+                <!-- Área que aceita drop -->
+                <div class="card-body" ondrop="onDrop(event, @column.Id)" ondragover="allowDrop(event)">
+                    @if (column.Cards != null && column.Cards.Any())
+                    {
+                        foreach (var card in column.Cards)
+                        {
+                            <!-- Cartão arrastável -->
+                            <div class="card mb-2" draggable="true" ondragstart="onDragStart(event, @card.Id)">
+                                <div class="card-body">
+                                    <h6 class="card-title">@card.Title</h6>
+                                    <p class="card-text">@card.Description</p>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Nenhum card nesta coluna.</p>
+                    }
+
+                    <!-- Formulário para adicionar novo card -->
+                    @await Html.PartialAsync("_CreateCard", new Kanban.Models.Card { ColumnId = column.Id })
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function onDragStart(event, cardId) {
+            event.dataTransfer.setData("cardId", cardId);
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function onDrop(event, columnId) {
+            event.preventDefault();
+            const cardId = event.dataTransfer.getData("cardId");
+
+            fetch('/Card/Move', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `cardId=${cardId}&newColumnId=${columnId}`
+            }).then(() => {
+                location.reload();
+            });
+        }
+    </script>
+}

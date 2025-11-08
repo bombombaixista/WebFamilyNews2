@@ -1,0 +1,23 @@
+﻿@model Kanban.Models.Card
+
+<h2>Editar Card</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ColumnId" />
+
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label">Título</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label">Descrição</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">Cancelar</a>
+</form>

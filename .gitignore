@@ -1,25 +1,8 @@
-# Build results
+# Ignorar arquivos temporários do Visual Studio
+.vs/
 bin/
 obj/
-publish/
-
-# User-specific files
 *.user
 *.suo
-*.userosscache
-*.sln.docstates
+*.vsidx
 
-# Visual Studio Code
-.vscode/
-
-# Logs
-*.log
-
-# Backup & temp files
-*.bak
-*.tmp
-*.temp
-
-# Configuração local
-appsettings.Development.json
-/.gitignore

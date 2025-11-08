@@ -1,0 +1,15 @@
+﻿@model Kanban.Models.Card
+
+<form method="post" action="/Card/Create" class="mt-2">
+    <input type="hidden" name="ColumnId" value="@Model.ColumnId" />
+
+    <div class="mb-2">
+        <input type="text" name="Title" class="form-control form-control-sm" placeholder="Título do card" required />
+    </div>
+
+    <div class="mb-2">
+        <textarea name="Description" class="form-control form-control-sm" placeholder="Descrição do card"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success btn-sm">Adicionar Card</button>
+</form>

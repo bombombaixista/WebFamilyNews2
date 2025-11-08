@@ -1,0 +1,143 @@
+﻿@if (Model.Count > 0)
+{
+    var coluna = Model[0];
+
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5>Coluna: @coluna.Name</h5>
+        </div>
+
+        <div class="card-body">
+            @if (coluna.Cards.Count > 0)
+            {
+                var card = coluna.Cards[0];
+
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <h6 class="card-title">@card.Title</h6>
+                        <p class="card-text">@card.Description</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p>Esta coluna não tem cards.</p>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <p>Não há colunas cadastradas.</p>
+}
+@model List<Kanban.Models.Column>
+
+<h2 class="text-center mb-4">Quadro Kanban</h2>
+
+<div class="row">
+    @foreach (var column in Model)
+    {
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">@column.Name</h5>
+                </div>
+                <div class="card-body">
+                    <div id="cards-coluna-@column.Id">
+                        @foreach (var card in column.Cards)
+                        {
+                            <div class="card border mb-2 p-2">
+                                <strong>@card.Title</strong><br />
+                                <small>@card.Description</small>
+
+                                <div class="mt-2">
+                                    <button class="btn btn-warning btn-sm editar-card"
+                                            data-id="@card.Id"
+                                            data-title="@card.Title"
+                                            data-description="@card.Description">
+                                        Editar
+                                    </button>
+                                    <button class="btn btn-danger btn-sm excluir-card" data-id="@card.Id">Excluir</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Formulário para adicionar card -->
+                    <form class="mt-3 adicionar-card-form" data-coluna="@column.Id">
+                        <input type="hidden" name="ColumnId" value="@column.Id" />
+                        <input type="text" name="Title" class="form-control form-control-sm mb-2" placeholder="Título" required />
+                        <textarea name="Description" class="form-control form-control-sm mb-2" placeholder="Descrição"></textarea>
+                        <button type="submit" class="btn btn-success btn-sm">Adicionar Card</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- 🔹 Modal de edição -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editCardForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Card</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="Id" id="editCardId" />
+                    <div class="mb-2">
+                        <input type="text" name="Title" id="editCardTitle" class="form-control" required />
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="Description" id="editCardDescription" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 🔹 Aqui entra o bloco de scripts -->
+@section Scripts {
+    <script>
+        // Abrir modal com dados do card
+        $(".editar-card").on("click", function () {
+            $("#editCardId").val($(this).data("id"));
+            $("#editCardTitle").val($(this).data("title"));
+            $("#editCardDescription").val($(this).data("description"));
+            $("#editModal").modal("show");
+        });
+
+        // Salvar edição via AJAX
+        $("#editCardForm").on("submit", function (e) {
+            e.preventDefault();
+            const data = $(this).serialize();
+
+            $.post("/Card/Edit", data)
+                .done(() => location.reload())
+                .fail(() => alert("Erro ao editar card"));
+        });
+
+        // Excluir card
+        $(".excluir-card").on("click", function () {
+            const id = $(this).data("id");
+            $.post("/Card/Delete", { id: id })
+                .done(() => location.reload())
+                .fail(() => alert("Erro ao excluir card"));
+        });
+
+        // Adicionar card
+        $(".adicionar-card-form").on("submit", function (e) {
+            e.preventDefault();
+            const data = $(this).serialize();
+            $.post("/Card/Create", data)
+                .done(() => location.reload())
+                .fail(() => alert("Erro ao adicionar card"));
+        });
+    </script>
+}

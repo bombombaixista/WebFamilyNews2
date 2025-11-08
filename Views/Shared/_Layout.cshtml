@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        /* Botão redondo e pequeno com emoji */
+        .btn-delete {
+            width: 22px; /* largura pequena */
+            height: 22px; /* altura pequena */
+            padding: 0;
+            border-radius: 20%; /* deixa redondo */
+            font-size: 100px; /* tamanho do emoji */
+            line-height: 22px; /* centraliza verticalmente */
+            text-align: center; /* centraliza horizontalmente */
+            position: absolute; /* posiciona dentro do card */
+            bottom: 5px; /* canto inferior */
+            right: 5px; /* canto direito */
+        }
+
+        /* Container do card para permitir posicionamento absoluto */
+        .kanban-item {
+            position: relative;
+            padding-bottom: 30px; /* espaço extra para não sobrepor o texto */
+        }
+    </style>
+
+    <style>
+        /* Classe customizada para deixar o botão menor */
+        .btn-delete {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.7rem;
+            line-height: 1;
+            border-radius: 0.2rem;
+        }
+    </style>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Kanban</title>
+
+    <!-- jKanban -->
+    <link rel="stylesheet" href="https://unpkg.com/jkanban@latest/dist/jkanban.min.css" />
+    <script src="https://unpkg.com/jkanban@latest/dist/jkanban.min.js"></script>
+
+    <!-- Bootstrap e estilos locais -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Kanban.styles.css" asp-append-version="true" />
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kanban</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - Kanban - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+
+    <!-- Scripts globais -->
+    <script src="~/Scripts/jquery-3.7.1.min.js"></script>
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

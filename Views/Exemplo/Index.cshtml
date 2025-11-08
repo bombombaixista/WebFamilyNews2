@@ -1,0 +1,163 @@
+﻿@model List<Kanban.Models.Column>
+
+@{
+    ViewData["Title"] = "Kanban";
+}
+
+<h2 class="text-center mb-4">Quadro Kanban</h2>
+
+<!-- Títulos das colunas -->
+<div class="row text-center mb-3">
+    @foreach (var column in Model)
+    {
+        <div class="col-md-4">
+            <h4>@column.Name</h4>
+        </div>
+    }
+</div>
+
+<!-- Colunas -->
+<div class="row">
+    @foreach (var column in Model)
+    {
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <!-- Área de drop -->
+                    <div id="cards-coluna-@column.Id" class="kanban-coluna p-2 border rounded" data-id="@column.Id" style="min-height:150px;">
+                        @foreach (var card in column.Cards)
+                        {
+                            <div class="card border mb-2 p-2 kanban-card" data-id="@card.Id" style="cursor:grab;">
+                                <strong>@card.Title</strong><br />
+                                <small>@card.Description</small>
+
+                                <div class="mt-2">
+                                    <button class="btn btn-warning btn-sm editar-card"
+                                            data-id="@card.Id"
+                                            data-title="@card.Title"
+                                            data-description="@card.Description">
+                                        Editar
+                                    </button>
+                                    <button class="btn btn-danger btn-sm excluir-card" data-id="@card.Id">Excluir</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Formulário para adicionar card -->
+                    <form class="mt-3 adicionar-card-form" data-coluna="@column.Id">
+                        <input type="hidden" name="ColumnId" value="@column.Id" />
+                        <input type="text" name="Title" class="form-control form-control-sm mb-2" placeholder="Título" required />
+                        <textarea name="Description" class="form-control form-control-sm mb-2" placeholder="Descrição"></textarea>
+                        <button type="submit" class="btn btn-success btn-sm">Adicionar Card</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal de edição -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editCardForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Card</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="Id" id="editCardId" />
+                    <div class="mb-2">
+                        <input type="text" name="Title" id="editCardTitle" class="form-control" required />
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="Description" id="editCardDescription" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- jQuery UI para drag-and-drop -->
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+
+    <script>
+        (function () {
+            // Abrir modal com Bootstrap 5
+            $(document).on("click", ".editar-card", function () {
+                $("#editCardId").val($(this).data("id"));
+                $("#editCardTitle").val($(this).data("title"));
+                $("#editCardDescription").val($(this).data("description"));
+
+                const modalEl = document.getElementById("editModal");
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            });
+
+            // Salvar edição
+            $("#editCardForm").on("submit", function (e) {
+                e.preventDefault();
+                const data = $(this).serialize();
+
+                $.post("/Card/Edit", data)
+                    .done(() => location.reload())
+                    .fail(() => alert("Erro ao editar card"));
+            });
+
+            // Excluir card
+            $(document).on("click", ".excluir-card", function () {
+                const id = $(this).data("id");
+                $.post("/Card/Delete", { id })
+                    .done(() => location.reload())
+                    .fail(() => alert("Erro ao excluir card"));
+            });
+
+            // Adicionar card
+            $(".adicionar-card-form").on("submit", function (e) {
+                e.preventDefault();
+                const data = $(this).serialize();
+
+                $.post("/Card/Create", data)
+                    .done(() => location.reload())
+                    .fail(() => alert("Erro ao adicionar card"));
+            });
+
+            // Drag-and-drop
+            function makeDraggable() {
+                $(".kanban-card").draggable({
+                    revert: "invalid",
+                    helper: "clone",
+                    zIndex: 10000,
+                    start: function () { $(this).css("opacity", "0.6"); },
+                    stop: function () { $(this).css("opacity", "1"); }
+                });
+            }
+
+            $(".kanban-column").droppable({
+                accept: ".kanban-card",
+                tolerance: "pointer",
+                hoverClass: "bg-warning-subtle",
+                drop: function (event, ui) {
+                    const $card = ui.draggable;
+                    const cardId = $card.data("id");
+                    const newColumnId = $(this).data("id");
+
+                    $card.detach().appendTo($(this));
+                    makeDraggable();
+
+                    $.post("/Card/Move", { id: cardId, columnId: newColumnId })
+                        .fail(() => alert("Erro ao mover card"));
+                }
+            });
+
+            makeDraggable();
+        })();
+    </script>
+}
