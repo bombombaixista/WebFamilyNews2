@@ -1,0 +1,71 @@
+﻿@model List<Kanban.Models.Transacao>
+@{
+    ViewData["Title"] = "Dashboard Kanban";
+}
+
+<h1>Financeiro</h1>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <h3>Entradas 💰</h3>
+        <div id="entrada" class="kanban-column bg-light p-3" ondrop="drop(event)" ondragover="allowDrop(event)">
+            @foreach (var t in Model.Where(x => x.Tipo == "Entrada"))
+            {
+                <div class="kanban-card card mb-2" draggable="true" ondragstart="drag(event)" data-id="@t.Id" 
+                     style="background-color:@(t.Valor>1000?"#d4edda":"inherit")">
+                    <div class="card-body">
+                        <strong>@t.Descricao</strong><br />
+                        Valor: @t.Valor.ToString("C")<br />
+                        Data: @t.Data.ToString("dd/MM/yyyy")
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <h3>Saídas 💸</h3>
+        <div id="saida" class="kanban-column bg-light p-3" ondrop="drop(event)" ondragover="allowDrop(event)">
+            @foreach (var t in Model.Where(x => x.Tipo == "Saída"))
+            {
+                <div class="kanban-card card mb-2" draggable="true" ondragstart="drag(event)" data-id="@t.Id" 
+                     style="background-color:@(t.Valor>1000?"#f8d7da":"inherit")">
+                    <div class="card-body">
+                        <strong>@t.Descricao</strong><br />
+                        Valor: @t.Valor.ToString("C")<br />
+                        Data: @t.Data.ToString("dd/MM/yyyy")
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .kanban-column { min-height: 400px; border: 1px solid #ccc; border-radius: 5px; }
+    .kanban-card { cursor: grab; }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    let draggedCard = null;
+
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drag(ev) { draggedCard = ev.target; }
+
+    function drop(ev) {
+        ev.preventDefault();
+        let column = ev.target.closest('.kanban-column');
+        if (!column || !draggedCard) return;
+
+        column.appendChild(draggedCard);
+
+        let id = draggedCard.getAttribute('data-id');
+        let novoTipo = column.id;
+
+        $.post('/Financeiro/AtualizarTipo', { id: id, novoTipo: novoTipo }, function(data) {
+            if(data.success) console.log('Transação atualizada com sucesso');
+            else console.error(data.message);
+        });
+    }
+</script>

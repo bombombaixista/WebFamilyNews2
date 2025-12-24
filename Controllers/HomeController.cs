@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Kanban.Controllers
 {
+    [Authorize]
     // 🚀 Controller sem autenticação
     public class HomeController : Controller
     {

@@ -1,0 +1,223 @@
+﻿@{
+    ViewData["Title"] = "Clientes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-4">Cadastro de Clientes</h2>
+
+<form id="clienteForm" class="card p-3 mb-4">
+    <div class="row">
+        <div class="col-md-6 mb-2">
+            <label class="form-label">Nome</label>
+            <input id="nome" class="form-control" required />
+        </div>
+        <div class="col-md-6 mb-2">
+            <label class="form-label">Email</label>
+            <input id="email" type="email" class="form-control" required />
+        </div>
+        <div class="col-md-4 mb-2">
+            <label class="form-label">Telefone</label>
+            <input id="telefone" class="form-control" />
+        </div>
+        <div class="col-md-4 mb-2">
+            <label class="form-label">Empresa</label>
+            <input id="empresa" class="form-control" />
+        </div>
+        <div class="col-md-4 mb-2">
+            <label class="form-label">Cargo</label>
+            <input id="cargo" class="form-control" />
+        </div>
+        <div class="col-md-4 mb-2">
+            <label class="form-label">Origem</label>
+            <select id="origem" class="form-select">
+                <option value="Site">Site</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Indicação">Indicação</option>
+                <option value="Outro">Outro</option>
+            </select>
+        </div>
+        <div class="col-md-12 mb-2">
+            <label class="form-label">Observações / Anotações</label>
+            <textarea id="observacoes" class="form-control" rows="4" placeholder="Informações adicionais sobre o cliente..."></textarea>
+        </div>
+    </div>
+    <button class="btn btn-success mt-2">Salvar Cliente</button>
+</form>
+
+<table class="table table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Empresa</th>
+            <th>Origem</th>
+            <th>Cadastro</th>
+            <th width="160">Ações</th>
+        </tr>
+    </thead>
+    <tbody id="clientesTable"></tbody>
+</table>
+
+<div class="modal fade" id="editarClienteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="editarClienteForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editId" />
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label">Nome</label>
+                            <input id="editNome" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label">Email</label>
+                            <input id="editEmail" type="email" class="form-control" required />
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Telefone</label>
+                            <input id="editTelefone" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Empresa</label>
+                            <input id="editEmpresa" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Cargo</label>
+                            <input id="editCargo" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Origem</label>
+                            <select id="editOrigem" class="form-select">
+                                <option value="Site">Site</option>
+                                <option value="WhatsApp">WhatsApp</option>
+                                <option value="Indicação">Indicação</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="form-label">Observações / Anotações</label>
+                            <textarea id="editObservacoes" class="form-control" rows="4"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary">Salvar alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const tableBody = document.getElementById("clientesTable");
+    const modalEl = document.getElementById('editarClienteModal');
+
+    async function carregarClientes() {
+        const resp = await fetch('/Clientes/Listar');
+        if (!resp.ok) { console.error('Falha ao listar clientes'); return; }
+        const clientes = await resp.json();
+
+        tableBody.innerHTML = "";
+        clientes.forEach(c => {
+            tableBody.innerHTML += `
+                <tr>
+                    <td>${c.nome}</td>
+                    <td>${c.email}</td>
+                    <td>${c.empresa || ""}</td>
+                    <td>${c.origem || ""}</td>
+                    <td>${c.dataCadastro ? new Date(c.dataCadastro).toLocaleString("pt-BR") : ""}</td>
+                    <td class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" onclick="abrirEdicao(${c.id})">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="excluirCliente(${c.id})">Excluir</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    async function excluirCliente(id) {
+        if (!confirm("Deseja excluir este cliente?")) return;
+        const resp = await fetch(`/Clientes/Apagar/${id}`, { method: 'DELETE' });
+        if (!resp.ok) { alert('Erro ao excluir'); return; }
+        carregarClientes();
+    }
+
+    async function abrirEdicao(id) {
+        const resp = await fetch('/Clientes/Listar');
+        if (!resp.ok) { alert('Erro ao carregar clientes'); return; }
+        const clientes = await resp.json();
+        const c = clientes.find(x => x.id === id);
+        if (!c) return;
+
+        document.getElementById("editId").value = c.id;
+        document.getElementById("editNome").value = c.nome;
+        document.getElementById("editEmail").value = c.email;
+        document.getElementById("editTelefone").value = c.telefone || "";
+        document.getElementById("editEmpresa").value = c.empresa || "";
+        document.getElementById("editCargo").value = c.cargo || "";
+        document.getElementById("editOrigem").value = c.origem || "Outro";
+        document.getElementById("editObservacoes").value = c.observacoes || "";
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+
+    document.getElementById("editarClienteForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("editId").value;
+        const atualizado = {
+            nome: document.getElementById("editNome").value,
+            email: document.getElementById("editEmail").value,
+            telefone: document.getElementById("editTelefone").value,
+            empresa: document.getElementById("editEmpresa").value,
+            cargo: document.getElementById("editCargo").value,
+            origem: document.getElementById("editOrigem").value,
+            observacoes: document.getElementById("editObservacoes").value
+        };
+
+        const resp = await fetch(`/Clientes/Editar/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(atualizado)
+        });
+        if (!resp.ok) { alert('Erro ao editar'); return; }
+
+        bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+        carregarClientes();
+    });
+
+    document.getElementById("clienteForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const novo = {
+            nome: document.getElementById("nome").value,
+            email: document.getElementById("email").value,
+            telefone: document.getElementById("telefone").value,
+            empresa: document.getElementById("empresa").value,
+            cargo: document.getElementById("cargo").value,
+            origem: document.getElementById("origem").value,
+            observacoes: document.getElementById("observacoes").value
+        };
+
+        const resp = await fetch('/Clientes/Adicionar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(novo)
+        });
+
+        if (!resp.ok) {
+            const msg = await resp.text().catch(()=>'');
+            alert('Erro ao salvar cliente ' + (msg || ''));
+            return;
+        }
+
+        e.target.reset();
+        carregarClientes();
+    });
+
+    carregarClientes();
+</script>

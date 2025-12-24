@@ -27,15 +27,16 @@ namespace Kanban.Controllers
                 return View();
             }
 
-            var sucesso = await _apiService.RegisterAsync(nome, senha);
+            var sucesso = await _apiService.RegisterAsync(nome, senha); // 🔹 usa o valor digitado
 
             if (!sucesso)
             {
-                ViewBag.Error = "Erro ao cadastrar usuário.";
+                ViewBag.Error = "Falha no cadastro. Talvez o usuário já exista.";
                 return View();
             }
 
-            return RedirectToAction("Index", "Login");
+            ViewBag.Success = "Cadastro realizado com sucesso!";
+            return View();
         }
     }
 }

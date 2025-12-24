@@ -1,0 +1,269 @@
+﻿@{
+    ViewData["Title"] = "Pipeline de Vendas";
+}
+
+<h2 class="text-center mb-4 bg-primary text-white p-3 rounded shadow">Pipeline de Vendas</h2>
+
+<div class="d-flex mb-3">
+    <select id="prioritySelect" class="form-select w-auto">
+        <option value="Alta">Alta</option>
+        <option value="Média" selected>Média</option>
+        <option value="Baixa">Baixa</option>
+    </select>
+    <button id="addCardBtn" class="btn btn-success shadow me-2">Adicionar Deal</button>
+</div>
+
+<div class="row" id="pipelineKanban">
+    <div class="col kanban-column prospect" data-stage-id="1">
+        <h4 class="bg-info text-white p-2 rounded">Prospect (<span class="count">0</span>)</h4>
+        <div class="kanban-list"></div>
+    </div>
+    <div class="col kanban-column negociacao" data-stage-id="2">
+        <h4 class="bg-warning text-dark p-2 rounded">Negociação (<span class="count">0</span>)</h4>
+        <div class="kanban-list"></div>
+    </div>
+    <div class="col kanban-column fechamento" data-stage-id="3">
+        <h4 class="bg-success text-white p-2 rounded">Fechamento (<span class="count">0</span>)</h4>
+        <div class="kanban-list"></div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+
+<style>
+    .kanban-list {
+        min-height: 250px;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .prospect .kanban-list {
+        background-color: #d1ecf1;
+    }
+
+    .negociacao .kanban-list {
+        background-color: #fff3cd;
+    }
+
+    .fechamento .kanban-list {
+        background-color: #d4edda;
+    }
+
+    .kanban-item {
+        background: #fff;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        position: relative;
+        cursor: grab;
+        transition: box-shadow 0.2s ease;
+        user-select: none; /* impede highlight de texto */
+    }
+
+        .kanban-item strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .kanban-item small {
+            color: #333;
+            display: block;
+        }
+
+    .btn-delete {
+        cursor: pointer;
+        color: #dc3545;
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        font-size: 1.2em;
+        line-height: 1;
+    }
+
+        .btn-delete:hover {
+            color: #a71d2a;
+        }
+
+    .priority {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        margin-top: 5px;
+    }
+
+        .priority.alta {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .priority.média {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .priority.baixa {
+            background: #198754;
+            color: #fff;
+        }
+
+    /* estilos do drag */
+    .drag-ghost {
+        opacity: 1 !important;
+    }
+
+    .drag-chosen {
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
+        transform: scale(1.05);
+    }
+
+    .dragging {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+    const stages = Array.from(document.querySelectorAll('.kanban-column'));
+
+    async function carregarDeals(){
+        const resp = await fetch('/Pipeline/Listar');
+        const deals = await resp.json();
+
+        stages.forEach(col => col.querySelector('.kanban-list').innerHTML = "");
+
+        deals.forEach(deal => {
+            const column = document.querySelector(`.kanban-column[data-stage-id="${deal.stageId}"] .kanban-list`);
+            if (column) column.appendChild(createCard(deal));
+        });
+
+        updateCounts();
+    }
+
+    function createCard(deal){
+        const card = document.createElement('div');
+        card.className = 'kanban-item';
+        card.dataset.id = deal.id;
+        card.dataset.priority = deal.prioridade;
+
+        card.innerHTML = `
+            <strong>${deal.titulo}</strong>
+            <small>${deal.descricao || ""}</small><br/>
+            <span class="priority ${deal.prioridade.toLowerCase()}">${deal.prioridade}</span>
+            <span class="btn-delete"><i class="bi bi-trash"></i></span>
+            <small>R$ ${deal.valor} - Prob: ${deal.probabilidade}%</small>
+        `;
+
+        const btnDelete = card.querySelector(".btn-delete");
+
+        // evento da lixeira (apenas apagar)
+        btnDelete.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            await apagarDeal(deal.id);
+        });
+
+        // evento de edição (apenas se clicar fora da lixeira)
+        card.addEventListener("click", async (e) => {
+            if (e.target === btnDelete || e.target.closest('.btn-delete')) return;
+
+            const novoTitulo = prompt("Editar título:", deal.titulo);
+            if (!novoTitulo) return;
+            const novaDescricao = prompt("Editar descrição:", deal.descricao);
+            const novoValor = parseFloat(prompt("Editar valor R$:", deal.valor)) || deal.valor;
+            const novaProb = parseInt(prompt("Editar probabilidade %:", deal.probabilidade)) || deal.probabilidade;
+            const novaPrioridade = prompt("Editar prioridade (Alta/Média/Baixa):", deal.prioridade) || deal.prioridade;
+
+            const atualizado = {
+                ...deal,
+                titulo: novoTitulo,
+                descricao: novaDescricao,
+                valor: novoValor,
+                probabilidade: novaProb,
+                prioridade: novaPrioridade,
+                stageId: deal.stageId
+            };
+
+            await fetch(`/Pipeline/Editar/${deal.id}`, {
+                method:'PUT',
+                headers:{ 'Content-Type':'application/json' },
+                body: JSON.stringify(atualizado)
+            });
+
+            carregarDeals();
+        });
+
+        return card;
+    }
+
+    async function apagarDeal(id){
+        if(!confirm("Deseja excluir este deal?")) return;
+        await fetch(`/Pipeline/Apagar/${id}`, { method:'DELETE' });
+        carregarDeals();
+    }
+
+    document.getElementById('addCardBtn').addEventListener('click', async () => {
+        const titulo = prompt("Título do deal:");
+        if (!titulo) return;
+        const descricao = prompt("Descrição:");
+        const valor = parseFloat(prompt("Valor R$:")) || 0;
+        const probabilidade = parseInt(prompt("Probabilidade %:")) || 0;
+        const prioridade = document.getElementById('prioritySelect').value;
+
+        const novoDeal = {
+            cliente: "Cliente X",
+            titulo,
+            descricao,
+            valor,
+            probabilidade,
+            prioridade,
+            stageId: 1
+        };
+
+        const resp = await fetch('/Pipeline/Adicionar', {
+            method:'POST',
+            headers:{ 'Content-Type':'application/json' },
+            body: JSON.stringify(novoDeal)
+        });
+
+        if (resp.ok) {
+            carregarDeals();
+        } else {
+            alert("Erro ao adicionar deal");
+        }
+    });
+
+    function updateCounts(){
+        stages.forEach(col=>{
+            const count = col.querySelectorAll('.kanban-item').length;
+            col.querySelector('.count').textContent = count;
+        });
+    }
+
+    // Drag & Drop com efeito moderno
+    stages.forEach(col => {
+        new Sortable(col.querySelector('.kanban-list'), {
+            group: 'pipeline',
+            animation: 200,
+            ghostClass: 'drag-ghost',
+            chosenClass: 'drag-chosen',
+            dragClass: 'dragging',
+            onEnd: async function (evt) {
+                const dealId = parseInt(evt.item.dataset.id);
+                const newStageId = parseInt(evt.to.closest('.kanban-column').dataset.stageId);
+
+                await fetch(`/Pipeline/Mover/${dealId}`, {
+                    method:'PUT',
+                    headers:{ 'Content-Type':'application/json' },
+                    body: JSON.stringify(newStageId)
+                });
+
+                updateCounts();
+            }
+        });
+    });
+
+    // Inicialização
+    carregarDeals();
+</script>

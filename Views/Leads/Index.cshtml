@@ -1,0 +1,238 @@
+﻿@model Kanban.ViewModels.PipelineViewModel
+
+@{
+    ViewData["Title"] = "Pipeline de Vendas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+
+<h2 class="text-center mb-4 bg-primary text-white p-3 rounded shadow">Pipeline de Vendas</h2>
+
+<div class="d-flex mb-3">
+    <select id="prioritySelect" class="form-select w-auto">
+        <option value="Alta">Alta</option>
+        <option value="Média" selected>Média</option>
+        <option value="Baixa">Baixa</option>
+    </select>
+    <button id="addCardBtn" class="btn btn-success shadow me-2">Adicionar Card</button>
+</div>
+
+<div class="row" id="pipelineKanban">
+    @foreach (var stage in Model.Stages)
+    {
+        <div class="col kanban-column" data-stage-id="@stage.Id" id="stage-@stage.Id">
+            <h4 class="bg-secondary text-white p-2 rounded">@stage.Name (<span class="count">0</span>)</h4>
+            <div class="kanban-list bg-light">
+                @foreach (var deal in Model.Deals.Where(d => d.StageId == stage.Id))
+                {
+                    <div class="kanban-item" data-id="@deal.Id" data-priority="@deal.Priority">
+                        <strong>@deal.Title</strong>
+                        <small>@deal.Description</small><br />
+                        <span class="priority @deal.Priority.ToLower()">@deal.Priority</span>
+                        <span class="btn-delete" onclick="deleteDeal(@deal.Id)"><i class="bi bi-trash"></i></span>
+                        <small>R$ @deal.Value - Prob: @deal.Probability%</small>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .kanban-list {
+        min-height: 200px;
+        padding: 10px;
+        background-color: #d6d8d9;
+        border-radius: 8px;
+    }
+
+    .kanban-item {
+        background: #fff;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        position: relative;
+        cursor: pointer;
+    }
+
+        .kanban-item strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .kanban-item small {
+            color: #333;
+            display: block;
+        }
+
+    .btn-delete {
+        cursor: pointer;
+        color: #dc3545;
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        font-size: 1.2em;
+        line-height: 1;
+    }
+
+        .btn-delete:hover {
+            color: #a71d2a;
+        }
+
+    .priority {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        margin-top: 5px;
+    }
+
+        .priority.alta {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .priority.média {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .priority.baixa {
+            background: #198754;
+            color: #fff;
+        }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+    const STORAGE_KEY = "kanban_deals";
+    const stages = Array.from(document.querySelectorAll('.kanban-column'));
+
+    function getDeals() {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    }
+
+    function saveDeals(deals) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(deals));
+    }
+
+    function generateId() {
+        return Date.now();
+    }
+
+    // ---------- SORTABLE ----------
+    stages.forEach(col => {
+        new Sortable(col.querySelector('.kanban-list'), {
+            group: 'pipeline',
+            animation: 150,
+            onEnd: function (evt) {
+                const dealId = parseInt(evt.item.dataset.id);
+                const newStageId = parseInt(
+                    evt.to.closest('.kanban-column').dataset.stageId
+                );
+
+                const deals = getDeals();
+                const deal = deals.find(d => d.id === dealId);
+                if (deal) {
+                    deal.stageId = newStageId;
+                    saveDeals(deals);
+                }
+
+                updateCounts();
+            }
+        });
+    });
+
+    // ---------- ADD CARD ----------
+    document.getElementById('addCardBtn').addEventListener('click', () => {
+        const title = prompt("Título do deal:");
+        if (!title) return;
+
+        const description = prompt("Descrição:");
+        const value = parseFloat(prompt("Valor R$:")) || 0;
+        const prob = parseInt(prompt("Probabilidade %:")) || 0;
+        const priority = document.getElementById('prioritySelect').value;
+
+        const deals = getDeals();
+
+        const newDeal = {
+            id: generateId(),
+            title,
+            description,
+            value,
+            probability: prob,
+            priority,
+            stageId: parseInt(stages[0].dataset.stageId)
+        };
+
+        deals.push(newDeal);
+        saveDeals(deals);
+
+        const card = createCard(newDeal);
+        stages[0].querySelector('.kanban-list').appendChild(card);
+        updateCounts();
+    });
+
+    // ---------- CREATE CARD ----------
+    function createCard(deal){
+        const card = document.createElement('div');
+        card.className = 'kanban-item';
+        card.dataset.id = deal.id;
+        card.dataset.priority = deal.priority;
+
+        card.innerHTML = `
+            <strong>${deal.title}</strong>
+            <small>${deal.description || ""}</small>
+            <span class="priority ${deal.priority.toLowerCase()}">${deal.priority}</span>
+            <span class="btn-delete" onclick="deleteDeal(${deal.id})">
+                <i class="bi bi-trash"></i>
+            </span>
+            <small>R$ ${deal.value} - Prob: ${deal.probability}%</small>
+        `;
+        return card;
+    }
+
+    // ---------- DELETE ----------
+    function deleteDeal(dealId){
+        if(!confirm("Deseja excluir este deal?")) return;
+
+        let deals = getDeals();
+        deals = deals.filter(d => d.id !== dealId);
+        saveDeals(deals);
+
+        const card = document.querySelector(
+            '.kanban-item[data-id="'+dealId+'"]'
+        );
+        if(card) card.remove();
+
+        updateCounts();
+    }
+
+    // ---------- COUNTS ----------
+    function updateCounts(){
+        stages.forEach(col=>{
+            const count = col.querySelectorAll('.kanban-item').length;
+            col.querySelector('.count').textContent = count;
+        });
+    }
+
+    // ---------- LOAD ----------
+    function loadKanban() {
+        const deals = getDeals();
+
+        deals.forEach(deal => {
+            const column = document.querySelector(
+                `.kanban-column[data-stage-id="${deal.stageId}"] .kanban-list`
+            );
+            if (column) {
+                column.appendChild(createCard(deal));
+            }
+        });
+
+        updateCounts();
+    }
+
+    loadKanban();
+</script>

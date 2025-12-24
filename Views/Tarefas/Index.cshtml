@@ -1,0 +1,255 @@
+﻿@{
+    ViewData["Title"] = "Organizador de Tarefas";
+}
+
+<h2 class="text-center mb-4 bg-dark text-white p-3 rounded shadow">Organizador de Tarefas</h2>
+
+<div class="d-flex mb-3">
+    <select id="prioritySelect" class="form-select w-auto">
+        <option value="Alta">Alta</option>
+        <option value="Média" selected>Média</option>
+        <option value="Baixa">Baixa</option>
+    </select>
+    <button id="addCardBtn" class="btn btn-primary shadow me-2">Adicionar Tarefa</button>
+</div>
+
+<div class="row" id="kanbanBoard">
+    <div class="col kanban-column afazer" data-stage-id="1">
+        <h4 class="bg-info text-white p-2 rounded">A Fazer (<span class="count">0</span>)</h4>
+        <div class="kanban-list"></div>
+    </div>
+    <div class="col kanban-column progresso" data-stage-id="2">
+        <h4 class="bg-secondary text-white p-2 rounded">Em Progresso (<span class="count">0</span>)</h4>
+        <div class="kanban-list"></div>
+    </div>
+    <div class="col kanban-column concluido" data-stage-id="3">
+        <h4 class="bg-success text-white p-2 rounded">Concluído (<span class="count">0</span>)</h4>
+        <div class="kanban-list"></div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+
+<style>
+    .kanban-list {
+        min-height: 250px;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .afazer .kanban-list {
+        background-color: #e3f2fd;
+    }
+    /* azul claro */
+    .progresso .kanban-list {
+        background-color: #ede7f6;
+    }
+    /* lilás */
+    .concluido .kanban-list {
+        background-color: #e0f7fa;
+    }
+    /* verde água */
+
+    .kanban-item {
+        background: #fff;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        position: relative;
+        cursor: grab;
+        transition: box-shadow 0.2s ease;
+        user-select: none;
+    }
+
+        .kanban-item strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .kanban-item small {
+            color: #333;
+            display: block;
+        }
+
+    .btn-delete {
+        cursor: pointer;
+        color: #dc3545;
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        font-size: 1.2em;
+        line-height: 1;
+    }
+
+        .btn-delete:hover {
+            color: #a71d2a;
+        }
+
+    .priority {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        margin-top: 5px;
+    }
+
+        .priority.alta {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .priority.média {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .priority.baixa {
+            background: #198754;
+            color: #fff;
+        }
+
+    .drag-ghost {
+        opacity: 1 !important;
+    }
+
+    .drag-chosen {
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
+        transform: scale(1.05);
+    }
+
+    .dragging {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+    const stages = Array.from(document.querySelectorAll('.kanban-column'));
+
+    async function carregarTarefas(){
+        const resp = await fetch('/Tarefas/Listar');
+        const tarefas = await resp.json();
+
+        stages.forEach(col => col.querySelector('.kanban-list').innerHTML = "");
+
+        tarefas.forEach(tarefa => {
+            const column = document.querySelector(`.kanban-column[data-stage-id="${tarefa.stageId}"] .kanban-list`);
+            if (column) column.appendChild(createCard(tarefa));
+        });
+
+        updateCounts();
+    }
+
+    function createCard(tarefa){
+        const card = document.createElement('div');
+        card.className = 'kanban-item';
+        card.dataset.id = tarefa.id;
+        card.dataset.priority = tarefa.prioridade;
+
+        card.innerHTML = `
+            <strong>${tarefa.titulo}</strong>
+            <small>${tarefa.descricao || ""}</small><br/>
+            <span class="priority ${tarefa.prioridade.toLowerCase()}">${tarefa.prioridade}</span>
+            <span class="btn-delete"><i class="bi bi-trash"></i></span>
+        `;
+
+        const btnDelete = card.querySelector(".btn-delete");
+
+        btnDelete.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            await apagarTarefa(tarefa.id);
+        });
+
+        card.addEventListener("click", async (e) => {
+            if (e.target === btnDelete || e.target.closest('.btn-delete')) return;
+
+            const novoTitulo = prompt("Editar título:", tarefa.titulo);
+            if (!novoTitulo) return;
+            const novaDescricao = prompt("Editar descrição:", tarefa.descricao);
+            const novaPrioridade = prompt("Editar prioridade (Alta/Média/Baixa):", tarefa.prioridade) || tarefa.prioridade;
+
+            const atualizado = {
+                ...tarefa,
+                titulo: novoTitulo,
+                descricao: novaDescricao,
+                prioridade: novaPrioridade,
+                stageId: tarefa.stageId
+            };
+
+            await fetch(`/Tarefas/Editar/${tarefa.id}`, {
+                method:'PUT',
+                headers:{ 'Content-Type':'application/json' },
+                body: JSON.stringify(atualizado)
+            });
+
+            carregarTarefas();
+        });
+
+        return card;
+    }
+
+    async function apagarTarefa(id){
+        if(!confirm("Deseja excluir esta tarefa?")) return;
+        await fetch(`/Tarefas/Apagar/${id}`, { method:'DELETE' });
+        carregarTarefas();
+    }
+
+    document.getElementById('addCardBtn').addEventListener('click', async () => {
+        const titulo = prompt("Título da tarefa:");
+        if (!titulo) return;
+        const descricao = prompt("Descrição:");
+        const prioridade = document.getElementById('prioritySelect').value;
+
+        const novaTarefa = {
+            titulo,
+            descricao,
+            prioridade,
+            stageId: 1
+        };
+
+        const resp = await fetch('/Tarefas/Adicionar', {
+            method:'POST',
+            headers:{ 'Content-Type':'application/json' },
+            body: JSON.stringify(novaTarefa)
+        });
+
+        if (resp.ok) {
+            carregarTarefas();
+        } else {
+            alert("Erro ao adicionar tarefa");
+        }
+    });
+
+    function updateCounts(){
+        stages.forEach(col=>{
+            const count = col.querySelectorAll('.kanban-item').length;
+            col.querySelector('.count').textContent = count;
+        });
+    }
+
+    stages.forEach(col => {
+        new Sortable(col.querySelector('.kanban-list'), {
+            group: 'kanban',
+            animation: 200,
+            ghostClass: 'drag-ghost',
+            chosenClass: 'drag-chosen',
+            dragClass: 'dragging',
+            onEnd: async function (evt) {
+                const tarefaId = parseInt(evt.item.dataset.id);
+                const newStageId = parseInt(evt.to.closest('.kanban-column').dataset.stageId);
+
+                await fetch(`/Tarefas/Mover/${tarefaId}`, {
+                    method:'PUT',
+                    headers:{ 'Content-Type':'application/json' },
+                    body: JSON.stringify(newStageId)
+                });
+
+                updateCounts();
+            }
+        });
+    });
+
+    carregarTarefas();
+</script>

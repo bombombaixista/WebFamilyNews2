@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Gerenciar Backup";
+}
+
+<h2>Backup do Sistema</h2>
+
+<div class="card mt-4">
+    <div class="card-body text-center">
+        <p>Faça o backup completo dos dados ou restaure a partir de um arquivo ZIP.</p>
+
+        <!-- Botão Exportar -->
+        <button class="btn btn-success m-2" onclick="exportarTudo()">📤 Exportar Tudo</button>
+
+        <!-- Botão Importar -->
+        <input type="file" id="arquivoZip" accept=".zip" style="display:none;" onchange="importarTudo(event)" />
+        <button class="btn btn-danger m-2" onclick="document.getElementById('arquivoZip').click()">📥 Importar Tudo</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function exportarTudo() {
+            window.location.href = '/Backup/ExportarTudo';
+        }
+
+        async function importarTudo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("arquivo", file);
+
+            const resp = await fetch('/Backup/ImportarTudo', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (resp.ok) {
+                alert("Importação concluída com sucesso!");
+            } else {
+                alert("Falha ao importar backup.");
+            }
+        }
+    </script>
+}

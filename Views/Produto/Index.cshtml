@@ -1,0 +1,117 @@
+﻿@{
+    ViewData["Title"] = "Gestão de Produtos";
+}
+
+<h2>Produtos</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th>Preço</th>
+            <th>Fornecedor</th>
+            <th>Estoque</th>      <!-- 👈 coluna estoque -->
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody id="produtos"></tbody>
+</table>
+
+<button class="btn btn-primary" onclick="mostrarFormulario()">➕ Adicionar Produto</button>
+
+<div id="formulario" style="display:none; margin-top:20px;">
+    <h3>Novo Produto</h3>
+    <label>Nome:</label>
+    <input type="text" id="nome" class="form-control" />
+    <label>Categoria:</label>
+    <input type="text" id="categoria" class="form-control" />
+    <label>Preço:</label>
+    <input type="number" step="0.01" id="preco" class="form-control" />
+    <label>Fornecedor:</label>
+    <input type="text" id="fornecedor" class="form-control" />
+    <label>Estoque:</label>
+    <input type="number" id="estoque" class="form-control" /> <!-- 👈 input estoque -->
+
+    <button class="btn btn-success" onclick="salvarProduto()">Salvar</button>
+    <button class="btn btn-secondary" onclick="cancelarFormulario()">Cancelar</button>
+</div>
+
+@section Scripts {
+    <script>
+        async function carregarProdutos() {
+            const resp = await fetch('/Produto/Listar');
+            const produtos = await resp.json();
+            const tbody = document.getElementById("produtos");
+            tbody.innerHTML = "";
+            produtos.forEach(p => {
+                tbody.innerHTML += `<tr>
+                    <td>${p.id}</td>
+                    <td>${p.nome}</td>
+                    <td>${p.categoria}</td>
+                    <td>${p.preco}</td>
+                    <td>${p.fornecedor}</td>
+                    <td>${p.estoque}</td>  <!-- 👈 mostra estoque -->
+                    <td>
+                        <button class="btn btn-warning" onclick="editarProduto(${p.id})">✏️ Editar</button>
+                        <button class="btn btn-danger" onclick="apagarProduto(${p.id})">🗑️ Apagar</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        async function salvarProduto() {
+            const produto = {
+                nome: document.getElementById("nome").value,
+                categoria: document.getElementById("categoria").value,
+                preco: Number(document.getElementById("preco").value),       // 👈 número
+                fornecedor: document.getElementById("fornecedor").value,
+                estoque: Number(document.getElementById("estoque").value)    // 👈 número
+            };
+
+            await fetch('/Produto/Adicionar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(produto)
+            });
+
+            cancelarFormulario();
+            carregarProdutos();
+        }
+
+        async function editarProduto(id) {
+            const nome = prompt("Novo nome:");
+            const categoria = prompt("Nova categoria:");
+            const preco = Number(prompt("Novo preço:").replace(',', '.'));
+            const fornecedor = prompt("Novo fornecedor:");
+            const estoque = Number(prompt("Novo estoque:")); // 👈 captura estoque
+
+            const produto = { nome, categoria, preco, fornecedor, estoque };
+
+            await fetch(`/Produto/Editar/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(produto)
+            });
+
+            carregarProdutos();
+        }
+
+        async function apagarProduto(id) {
+            if (!confirm("Deseja realmente apagar este produto?")) return;
+            await fetch(`/Produto/Apagar/${id}`, { method: 'DELETE' });
+            carregarProdutos();
+        }
+
+        function mostrarFormulario() {
+            document.getElementById("formulario").style.display = "block";
+        }
+
+        function cancelarFormulario() {
+            document.getElementById("formulario").style.display = "none";
+        }
+
+        carregarProdutos();
+    </script>
+}

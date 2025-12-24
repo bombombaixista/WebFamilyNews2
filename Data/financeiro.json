@@ -1,0 +1,1 @@
+[{"id":1,"descricao":"entrada","valor":2000,"data":"2025-12-24T00:00:00","tipo":"Receita","categoria":"venda"},{"id":2,"descricao":"saida","valor":300,"data":"2025-12-24T00:00:00","tipo":"Despesa","categoria":"pagamento"},{"id":3,"descricao":"entrada","valor":3000,"data":"2025-12-24T00:00:00","tipo":"Receita","categoria":"venda"}]

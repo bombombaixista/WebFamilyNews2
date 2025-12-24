@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "Dashboard Financeiro";
+}
+
+<h1>Dashboard Financeiro</h1>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Total Entrada</div>
+            <div class="card-body">
+                <h5 class="card-title">@ViewBag.TotalEntrada.ToString("C")</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-header">Total Saída</div>
+            <div class="card-body">
+                <h5 class="card-title">@ViewBag.TotalSaida.ToString("C")</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Saldo</div>
+            <div class="card-body">
+                <h5 class="card-title">@ViewBag.Saldo.ToString("C")</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Fluxo Diário (Linha)</div>
+            <div class="card-body">
+                <canvas id="chartLinhas"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Proporção Entradas x Saídas (Pizza)</div>
+            <div class="card-body">
+                <canvas id="chartPizza"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">Entradas e Saídas (Barras)</div>
+            <div class="card-body">
+                <canvas id="chartBarras"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Dados para gráficos
+    const labels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Labels));
+    const valoresEntrada = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.ValoresEntrada));
+    const valoresSaida = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.ValoresSaida));
+    const totalEntrada = @ViewBag.TotalEntrada;
+    const totalSaida = @ViewBag.TotalSaida;
+
+    // Gráfico de linhas
+    new Chart(document.getElementById('chartLinhas').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Entrada', data: valoresEntrada, borderColor: 'green', fill: false },
+                { label: 'Saída', data: valoresSaida, borderColor: 'red', fill: false }
+            ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+    });
+
+    // Gráfico de pizza
+    new Chart(document.getElementById('chartPizza').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: ['Entrada', 'Saída'],
+            datasets: [{
+                data: [totalEntrada, totalSaida],
+                backgroundColor: ['green', 'red']
+            }]
+        },
+        options: { responsive: true }
+    });
+
+    // Gráfico de barras
+    new Chart(document.getElementById('chartBarras').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Entrada', data: valoresEntrada, backgroundColor: 'green' },
+                { label: 'Saída', data: valoresSaida, backgroundColor: 'red' }
+            ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+    });
+</script>

@@ -2,48 +2,60 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>@ViewData["Title"] - WebFamily</title>
-    <link rel="stylesheet" href="~/css/site.css" />
+    <title>@ViewData["Title"] - Organizador de Tarefas</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">WebFamily</a>
-                <div class="collapse navbar-collapse">
-                    <ul class="navbar-nav ms-auto">
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            <li class="nav-item">
-                                <form asp-controller="Login" asp-action="Logout" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-link nav-link">Logout</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Login" asp-action="Index">Login</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Login" asp-action="Cadastro">Cadastro</a>
-                            </li>
-                        }
-                    </ul>
-                </div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">WebFamily</a>
+
+            <!-- Botão hamburguer -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+                    aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Menu colapsável -->
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Pipeline">Pipeline de Vendas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Tarefas">Organizador de Tarefas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Produto">Produtos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Financeiro">Financeiro</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Clientes">Cadastro</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Backup">Backup</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Login/Logout">Logout</a>
+                    </li>
+                </ul>
             </div>
-        </nav>
-    </header>
+        </div>
+    </nav>
 
-    <main class="container mt-4">
+    <div class="container mt-4">
         @RenderBody()
-    </main>
+    </div>
 
-    <footer class="bg-light text-center p-3 mt-4">
-        <p>&copy; 2025 - WebFamily Kanban</p>
-    </footer>
-
+    <!-- Scripts específicos das Views -->
     @RenderSection("Scripts", required: false)
+
+    <!-- Bootstrap JS para o hamburguer funcionar -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

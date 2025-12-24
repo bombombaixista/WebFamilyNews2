@@ -1,0 +1,120 @@
+﻿@{
+    ViewData["Title"] = "Gestão Financeira";
+}
+
+<h2>Financeiro</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Descrição</th>
+            <th>Valor</th>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Categoria</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody id="financeiro"></tbody>
+</table>
+
+<button class="btn btn-primary" onclick="mostrarFormulario()">➕ Adicionar Registro</button>
+
+<div id="formulario" style="display:none; margin-top:20px;">
+    <h3>Novo Registro Financeiro</h3>
+    <label>Descrição:</label>
+    <input type="text" id="descricao" class="form-control" />
+    <label>Valor:</label>
+    <input type="number" step="0.01" id="valor" class="form-control" />
+    <label>Data:</label>
+    <input type="date" id="data" class="form-control" />
+    <label>Tipo:</label>
+    <select id="tipo" class="form-control">
+        <option value="Receita">Receita</option>
+        <option value="Despesa">Despesa</option>
+    </select>
+    <label>Categoria:</label>
+    <input type="text" id="categoria" class="form-control" />
+
+    <button class="btn btn-success" onclick="salvarRegistro()">Salvar</button>
+    <button class="btn btn-secondary" onclick="cancelarFormulario()">Cancelar</button>
+</div>
+
+@section Scripts {
+    <script>
+        async function carregarFinanceiro() {
+            const resp = await fetch('/Financeiro/Listar');
+            const registros = await resp.json();
+            const tbody = document.getElementById("financeiro");
+            tbody.innerHTML = "";
+            registros.forEach(r => {
+                tbody.innerHTML += `<tr>
+                    <td>${r.id}</td>
+                    <td>${r.descricao}</td>
+                    <td>${r.valor}</td>
+                    <td>${new Date(r.data).toLocaleDateString()}</td>
+                    <td>${r.tipo}</td>
+                    <td>${r.categoria}</td>
+                    <td>
+                        <button class="btn btn-warning" onclick="editarRegistro(${r.id})">✏️ Editar</button>
+                        <button class="btn btn-danger" onclick="apagarRegistro(${r.id})">🗑️ Apagar</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        async function salvarRegistro() {
+            const registro = {
+                descricao: document.getElementById("descricao").value,
+                valor: Number(document.getElementById("valor").value),
+                data: document.getElementById("data").value,
+                tipo: document.getElementById("tipo").value,
+                categoria: document.getElementById("categoria").value
+            };
+
+            await fetch('/Financeiro/Adicionar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(registro)
+            });
+
+            cancelarFormulario();
+            carregarFinanceiro();
+        }
+
+        async function editarRegistro(id) {
+            const descricao = prompt("Nova descrição:");
+            const valor = Number(prompt("Novo valor:").replace(',', '.'));
+            const data = prompt("Nova data (YYYY-MM-DD):");
+            const tipo = prompt("Novo tipo (Receita/Despesa):");
+            const categoria = prompt("Nova categoria:");
+
+            const registro = { descricao, valor, data, tipo, categoria };
+
+            await fetch(`/Financeiro/Editar/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(registro)
+            });
+
+            carregarFinanceiro();
+        }
+
+        async function apagarRegistro(id) {
+            if (!confirm("Deseja realmente apagar este registro?")) return;
+            await fetch(`/Financeiro/Apagar/${id}`, { method: 'DELETE' });
+            carregarFinanceiro();
+        }
+
+        function mostrarFormulario() {
+            document.getElementById("formulario").style.display = "block";
+        }
+
+        function cancelarFormulario() {
+            document.getElementById("formulario").style.display = "none";
+        }
+
+        carregarFinanceiro();
+    </script>
+}

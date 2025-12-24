@@ -1,0 +1,115 @@
+﻿@{
+    ViewData["Title"] = "Gestão de Funcionários";
+}
+
+<h2>Funcionários</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nome</th>
+            <th>Cargo</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody id="funcionarios"></tbody>
+</table>
+
+<!-- Botão para abrir formulário -->
+<button class="btn btn-primary" onclick="mostrarFormulario()">➕ Adicionar Funcionário</button>
+
+<!-- Formulário oculto -->
+<div id="formulario" style="display:none; margin-top:20px;">
+    <h3>Novo Funcionário</h3>
+    <label>Nome:</label>
+    <input type="text" id="nome" class="form-control" />
+    <label>Cargo:</label>
+    <input type="text" id="cargo" class="form-control" />
+    <label>Email:</label>
+    <input type="text" id="email" class="form-control" />
+    <label>Telefone:</label>
+    <input type="text" id="telefone" class="form-control" />
+
+    <button class="btn btn-success" onclick="salvarFuncionario()">Salvar</button>
+    <button class="btn btn-secondary" onclick="cancelarFormulario()">Cancelar</button>
+</div>
+
+@section Scripts {
+    <script>
+        async function carregarFuncionarios() {
+            const resp = await fetch('/Funcionario/Listar');
+            const funcionarios = await resp.json();
+            const tbody = document.getElementById("funcionarios");
+            tbody.innerHTML = "";
+            funcionarios.forEach(f => {
+                tbody.innerHTML += `<tr>
+                    <td>${f.id}</td>
+                    <td>${f.nome}</td>
+                    <td>${f.cargo}</td>
+                    <td>${f.email ?? ""}</td>
+                    <td>${f.telefone ?? ""}</td>
+                    <td>
+                        <button class="btn btn-warning" onclick="editarFuncionario(${f.id})">✏️ Editar</button>
+                        <button class="btn btn-danger" onclick="apagarFuncionario(${f.id})">🗑️ Apagar</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        async function salvarFuncionario() {
+            const funcionario = {
+                nome: document.getElementById("nome").value,
+                cargo: document.getElementById("cargo").value,
+                email: document.getElementById("email").value,
+                telefone: document.getElementById("telefone").value
+            };
+
+            await fetch('/Funcionario/Adicionar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(funcionario)
+            });
+
+            cancelarFormulario();
+            carregarFuncionarios();
+        }
+
+        async function editarFuncionario(id) {
+            const nome = prompt("Novo nome:");
+            const cargo = prompt("Novo cargo:");
+            const email = prompt("Novo email:");
+            const telefone = prompt("Novo telefone:");
+
+            const funcionario = { nome, cargo, email, telefone };
+
+            await fetch(`/Funcionario/Editar/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(funcionario)
+            });
+
+            carregarFuncionarios();
+        }
+
+        async function apagarFuncionario(id) {
+            if (!confirm("Deseja realmente apagar este funcionário?")) return;
+
+            await fetch(`/Funcionario/Apagar/${id}`, { method: 'DELETE' });
+            carregarFuncionarios();
+        }
+
+        function mostrarFormulario() {
+            document.getElementById("formulario").style.display = "block";
+        }
+
+        function cancelarFormulario() {
+            document.getElementById("formulario").style.display = "none";
+        }
+
+        // Carrega funcionários ao abrir a página
+        carregarFuncionarios();
+    </script>
+}
