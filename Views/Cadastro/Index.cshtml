@@ -2,33 +2,91 @@
     ViewData["Title"] = "Cadastro";
 }
 
-<h2>Cadastro</h2>
+<div class="container d-flex justify-content-center align-items-center"
+     style="min-height:85vh;">
+    <div class="card shadow-lg border-0 w-100"
+         style="max-width:420px;">
 
-<form asp-action="Register" method="post">
-    @Html.AntiForgeryToken()
+        <!-- HEADER -->
+        <div class="card-header text-center text-white"
+             style="background: linear-gradient(135deg,#0d6efd,#198754);">
+            <h4 class="mb-0">📝 Criar Conta</h4>
+            <small>Preencha os dados para se cadastrar</small>
+        </div>
 
-    <div>
-        <label>Nome</label>
-        <input type="text" name="nome" required />
+        <!-- BODY -->
+        <div class="card-body p-4">
+
+            <form asp-action="Register" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label">Nome</label>
+                    <input type="text"
+                           name="nome"
+                           class="form-control"
+                           placeholder="Seu nome completo"
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email"
+                           name="email"
+                           class="form-control"
+                           placeholder="seu@email.com"
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Senha</label>
+                    <input type="password"
+                           name="senha"
+                           class="form-control"
+                           placeholder="••••••••"
+                           required />
+                </div>
+
+                <div class="d-grid mt-4">
+                    <button type="submit"
+                            class="btn btn-success btn-lg">
+                        🚀 Cadastrar
+                    </button>
+                </div>
+            </form>
+
+            <!-- ERROS -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger mt-3 mb-0">
+                    <ul class="mb-0 ps-3">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+
+        <!-- FOOTER -->
+        <div class="card-footer text-center bg-light">
+            <small class="text-muted">
+                Já possui conta?
+                <a asp-action="Login" class="fw-bold text-decoration-none text-primary">
+                    Entrar
+                </a>
+            </small>
+        </div>
+
     </div>
-    <div>
-        <label>Email</label>
-        <input type="email" name="email" required />
-    </div>
-    <div>
-        <label>Senha</label>
-        <input type="password" name="senha" required />
-    </div>
+</div>
 
-    <button type="submit">Cadastrar</button>
-</form>
-
-@if (!ViewData.ModelState.IsValid)
-{
-    <div style="color:red">
-        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-        {
-            <p>@error.ErrorMessage</p>
+@section Styles {
+    <style>
+        .form-control:focus {
+            border-color: #198754;
+            box-shadow: 0 0 0 .15rem rgba(25,135,84,.25);
         }
-    </div>
+    </style>
 }

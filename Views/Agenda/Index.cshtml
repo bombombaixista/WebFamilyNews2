@@ -1,0 +1,242 @@
+﻿@{
+    ViewData["Title"] = "Agenda - FullCalendar";
+}
+
+<h2 class="text-center mb-4 bg-primary text-white p-3 rounded shadow">
+    Agenda
+</h2>
+
+<div class="mb-3">
+    <button class="btn btn-success shadow" data-bs-toggle="modal" data-bs-target="#eventModal">
+        ➕ Adicionar Evento
+    </button>
+</div>
+
+<div id="calendar"></div>
+
+<!-- MODAL -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Novo Evento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="eventForm" onsubmit="return false;">
+                    <div class="mb-3">
+                        <label class="form-label">Título</label>
+                        <input type="text" class="form-control" id="titulo" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" id="descricao"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Início</label>
+                        <input type="datetime-local" class="form-control" id="inicio" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Fim</label>
+                        <input type="datetime-local" class="form-control" id="fim" />
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="diaInteiro" />
+                        <label class="form-check-label">Dia inteiro</label>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer d-flex justify-content-between">
+                <!-- 🗑️ Lixeira -->
+                <button class="btn btn-danger d-none" id="deleteEventBtn">
+                    🗑️ Excluir
+                </button>
+
+                <div>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-success" id="saveEventBtn">Salvar</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+    <script>
+        let calendar;
+        let eventos = [];
+        let eventoEditando = null;
+
+        function loadState() {
+            eventos = JSON.parse(localStorage.getItem("agendaData") || "[]");
+            return eventos;
+        }
+
+        function saveState() {
+            localStorage.setItem("agendaData", JSON.stringify(eventos));
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
+                locale: "pt-br",
+                initialView: "dayGridMonth",
+                selectable: true,
+                editable: true,
+                headerToolbar: {
+                    left: "prev,next today",
+                    center: "title",
+                    right: "dayGridMonth,timeGridWeek,timeGridDay"
+                },
+                events: loadState(),
+
+                // ✏️ EDITAR
+                eventClick: function (info) {
+                    eventoEditando = info.event;
+
+                    tituloInput().value = info.event.title;
+                    descricaoInput().value = info.event.extendedProps.descricao || "";
+                    inicioInput().value = info.event.startStr.slice(0, 16);
+                    fimInput().value = info.event.endStr ? info.event.endStr.slice(0, 16) : "";
+                    diaInteiroInput().checked = info.event.allDay;
+
+                    document.querySelector(".modal-title").innerText = "Editar Evento";
+                    document.getElementById("saveEventBtn").innerText = "Atualizar";
+                    document.getElementById("deleteEventBtn").classList.remove("d-none");
+
+                    new bootstrap.Modal(document.getElementById("eventModal")).show();
+                },
+
+                eventDrop: atualizarEvento,
+                eventResize: atualizarEvento
+            });
+
+            calendar.render();
+
+            // 💾 SALVAR / ATUALIZAR
+            document.getElementById("saveEventBtn").addEventListener("click", function () {
+
+                const titulo = tituloInput().value.trim();
+                const descricao = descricaoInput().value.trim();
+                const inicio = inicioInput().value;
+                const fim = fimInput().value;
+                const diaInteiro = diaInteiroInput().checked;
+
+                if (!titulo || !inicio) {
+                    alert("Título e início são obrigatórios!");
+                    return;
+                }
+
+                // ✏️ EDITAR
+                if (eventoEditando) {
+
+                    eventoEditando.setProp("title", titulo);
+                    eventoEditando.setStart(inicio);
+                    eventoEditando.setEnd(fim || null);
+                    eventoEditando.setAllDay(diaInteiro);
+                    eventoEditando.setExtendedProp("descricao", descricao);
+
+                    const idx = eventos.findIndex(e => e.id == eventoEditando.id);
+                    if (idx >= 0) {
+                        eventos[idx] = {
+                            id: eventoEditando.id,
+                            title: titulo,
+                            start: inicio,
+                            end: fim || null,
+                            allDay: diaInteiro,
+                            extendedProps: { descricao }
+                        };
+                        saveState();
+                    }
+
+                    eventoEditando = null;
+                }
+                // ➕ NOVO
+                else {
+
+                    const novoEvento = {
+                        id: Date.now(),
+                        title: titulo,
+                        start: inicio,
+                        end: fim || null,
+                        allDay: diaInteiro,
+                        extendedProps: { descricao }
+                    };
+
+                    eventos.push(novoEvento);
+                    saveState();
+                    calendar.addEvent(novoEvento);
+                }
+
+                fecharModal();
+                resetarModal();
+            });
+
+            // 🗑️ EXCLUIR
+            document.getElementById("deleteEventBtn").addEventListener("click", function () {
+                if (!eventoEditando) return;
+
+                if (!confirm("Deseja realmente excluir este evento?")) return;
+
+                eventos = eventos.filter(e => e.id != eventoEditando.id);
+                saveState();
+
+                eventoEditando.remove();
+                eventoEditando = null;
+
+                fecharModal();
+                resetarModal();
+            });
+        });
+
+        function atualizarEvento(info) {
+            const idx = eventos.findIndex(e => e.id == info.event.id);
+            if (idx >= 0) {
+                eventos[idx].start = info.event.startStr;
+                eventos[idx].end = info.event.endStr;
+                eventos[idx].allDay = info.event.allDay;
+                saveState();
+            }
+        }
+
+        function fecharModal() {
+            const modalEl = document.getElementById("eventModal");
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+
+            document.querySelectorAll(".modal-backdrop").forEach(b => b.remove());
+            document.body.classList.remove("modal-open");
+            document.body.style.removeProperty("padding-right");
+        }
+
+        function resetarModal() {
+            document.getElementById("eventForm").reset();
+            document.querySelector(".modal-title").innerText = "Novo Evento";
+            document.getElementById("saveEventBtn").innerText = "Salvar";
+            document.getElementById("deleteEventBtn").classList.add("d-none");
+        }
+
+        // Helpers
+        const tituloInput = () => document.getElementById("titulo");
+        const descricaoInput = () => document.getElementById("descricao");
+        const inicioInput = () => document.getElementById("inicio");
+        const fimInput = () => document.getElementById("fim");
+        const diaInteiroInput = () => document.getElementById("diaInteiro");
+    </script>
+}

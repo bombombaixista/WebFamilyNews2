@@ -2,120 +2,252 @@
     ViewData["Title"] = "Gestão de Fornecedores";
 }
 
-<h2>Fornecedores</h2>
+<!-- DASHBOARD TOPO -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-white"
+             style="background: linear-gradient(135deg,#4e73df,#224abe);">
+            <div class="card-body">
+                <div class="small">Fornecedores</div>
+                <h4 id="dashTotal">0</h4>
+            </div>
+        </div>
+    </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Nome</th>
-            <th>Empresa</th>
-            <th>Telefone</th>
-            <th>Email</th>
-            <th>Produto/Serviço</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody id="fornecedores"></tbody>
-</table>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-white"
+             style="background: linear-gradient(135deg,#1cc88a,#17a673);">
+            <div class="card-body">
+                <div class="small">Empresas</div>
+                <h4 id="dashEmpresas">0</h4>
+            </div>
+        </div>
+    </div>
 
-<!-- Botão para abrir formulário -->
-<button class="btn btn-primary" onclick="mostrarFormulario()">➕ Adicionar Fornecedor</button>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-white"
+             style="background: linear-gradient(135deg,#36b9cc,#2c9faf);">
+            <div class="card-body">
+                <div class="small">Produtos</div>
+                <h4 id="dashProdutos">0</h4>
+            </div>
+        </div>
+    </div>
 
-<!-- Formulário oculto -->
-<div id="formulario" style="display:none; margin-top:20px;">
-    <h3>Novo Fornecedor</h3>
-    <label>Nome:</label>
-    <input type="text" id="nome" class="form-control" />
-    <label>Empresa:</label>
-    <input type="text" id="empresa" class="form-control" />
-    <label>Telefone:</label>
-    <input type="text" id="telefone" class="form-control" />
-    <label>Email:</label>
-    <input type="text" id="email" class="form-control" />
-    <label>Produto/Serviço:</label>
-    <input type="text" id="produto" class="form-control" />
-
-    <button class="btn btn-success" onclick="salvarFornecedor()">Salvar</button>
-    <button class="btn btn-secondary" onclick="cancelarFormulario()">Cancelar</button>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-white"
+             style="background: linear-gradient(135deg,#f6c23e,#dda20a);">
+            <div class="card-body">
+                <div class="small">Ativos</div>
+                <h4 id="dashAtivos">100%</h4>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- HEADER -->
+<div class="card shadow-sm mb-3 border-0">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap"
+         style="background: linear-gradient(135deg,#4e73df,#1cc88a); color:white;">
+        <h5 class="mb-2 mb-md-0">🏭 Gestão de Fornecedores</h5>
+
+        <button class="btn btn-light fw-bold text-primary"
+                onclick="abrirModalNovo()">
+            ➕ Novo Fornecedor
+        </button>
+    </div>
+</div>
+
+<!-- TABELA RESPONSIVA -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background:#f8f9fc;">
+                    <tr class="text-secondary">
+                        <th>#</th>
+                        <th>Nome</th>
+                        <th class="d-none d-md-table-cell">Empresa</th>
+                        <th class="d-none d-md-table-cell">Telefone</th>
+                        <th class="d-none d-md-table-cell">Email</th>
+                        <th>Produto</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="fornecedores"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="modalFornecedor" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header"
+                 style="background: linear-gradient(135deg,#36b9cc,#1cc88a); color:white;">
+                <h5 class="modal-title" id="modalTitulo">Fornecedor</h5>
+                <button class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="fornecedorId">
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Nome</label>
+                        <input type="text" id="nome" class="form-control">
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Empresa</label>
+                        <input type="text" id="empresa" class="form-control">
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" id="telefone" class="form-control">
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="email" class="form-control">
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Produto / Serviço</label>
+                        <input type="text" id="produto" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button class="btn btn-success"
+                        onclick="salvarFornecedor()">
+                    💾 Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .form-control:focus {
+            border-color: #1cc88a;
+            box-shadow: 0 0 0 .15rem rgba(28,200,138,.25);
+        }
+    </style>
+}
 
 @section Scripts {
     <script>
+        let modal;
+        let cacheFornecedores = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            modal = new bootstrap.Modal(document.getElementById("modalFornecedor"));
+            carregarFornecedores();
+        });
+
         async function carregarFornecedores() {
             const resp = await fetch('/Fornecedor/Listar');
-            const fornecedores = await resp.json();
+            cacheFornecedores = await resp.json();
+
+            atualizarDashboard();
+            renderTabela();
+        }
+
+        function atualizarDashboard() {
+            document.getElementById("dashTotal").innerText = cacheFornecedores.length;
+
+            document.getElementById("dashEmpresas").innerText =
+                new Set(cacheFornecedores.map(f => f.empresa)).size;
+
+            document.getElementById("dashProdutos").innerText =
+                new Set(cacheFornecedores.map(f => f.produto)).size;
+        }
+
+        function renderTabela() {
             const tbody = document.getElementById("fornecedores");
             tbody.innerHTML = "";
-            fornecedores.forEach(f => {
-                tbody.innerHTML += `<tr>
+
+            cacheFornecedores.forEach(f => {
+                tbody.innerHTML += `
+                <tr>
                     <td>${f.id}</td>
                     <td>${f.nome}</td>
-                    <td>${f.empresa}</td>
-                    <td>${f.telefone}</td>
-                    <td>${f.email}</td>
-                    <td>${f.produto}</td>
+                    <td class="d-none d-md-table-cell">${f.empresa}</td>
+                    <td class="d-none d-md-table-cell">${f.telefone}</td>
+                    <td class="d-none d-md-table-cell">${f.email}</td>
                     <td>
-                        <button class="btn btn-warning" onclick="editarFornecedor(${f.id})">✏️ Editar</button>
-                        <button class="btn btn-danger" onclick="apagarFornecedor(${f.id})">🗑️ Apagar</button>
+                        <span class="badge bg-info text-dark">${f.produto}</span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-warning text-white me-1"
+                                onclick="abrirModalEditar(${f.id})">✏️</button>
+                        <button class="btn btn-sm btn-danger"
+                                onclick="apagarFornecedor(${f.id})">🗑️</button>
                     </td>
                 </tr>`;
             });
         }
 
-        async function salvarFornecedor() {
-            const fornecedor = {
-                nome: document.getElementById("nome").value,
-                empresa: document.getElementById("empresa").value,
-                telefone: document.getElementById("telefone").value,
-                email: document.getElementById("email").value,
-                produto: document.getElementById("produto").value
-            };
-
-            await fetch('/Fornecedor/Adicionar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(fornecedor)
-            });
-
-            cancelarFormulario();
-            carregarFornecedores();
+        function abrirModalNovo() {
+            document.getElementById("modalTitulo").innerText = "Novo Fornecedor";
+            fornecedorId.value = "";
+            limparFormulario();
+            modal.show();
         }
 
-        async function editarFornecedor(id) {
-            const nome = prompt("Novo nome:");
-            const empresa = prompt("Nova empresa:");
-            const telefone = prompt("Novo telefone:");
-            const email = prompt("Novo email:");
-            const produto = prompt("Novo produto/serviço:");
+        async function abrirModalEditar(id) {
+            const f = cacheFornecedores.find(x => x.id === id);
+            fornecedorId.value = f.id;
+            nome.value = f.nome;
+            empresa.value = f.empresa;
+            telefone.value = f.telefone;
+            email.value = f.email;
+            produto.value = f.produto;
 
-            const fornecedor = { nome, empresa, telefone, email, produto };
+            document.getElementById("modalTitulo").innerText = "Editar Fornecedor";
+            modal.show();
+        }
 
-            await fetch(`/Fornecedor/Editar/${id}`, {
-                method: 'PUT',
+        async function salvarFornecedor() {
+            const id = fornecedorId.value;
+
+            const fornecedor = {
+                nome: nome.value,
+                empresa: empresa.value,
+                telefone: telefone.value,
+                email: email.value,
+                produto: produto.value
+            };
+
+            await fetch(id ? `/Fornecedor/Editar/${id}` : `/Fornecedor/Adicionar`, {
+                method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(fornecedor)
             });
 
+            modal.hide();
             carregarFornecedores();
         }
 
         async function apagarFornecedor(id) {
-            if (!confirm("Deseja realmente apagar este fornecedor?")) return;
-
+            if (!confirm("Excluir fornecedor?")) return;
             await fetch(`/Fornecedor/Apagar/${id}`, { method: 'DELETE' });
             carregarFornecedores();
         }
 
-        function mostrarFormulario() {
-            document.getElementById("formulario").style.display = "block";
+        function limparFormulario() {
+            nome.value = empresa.value = telefone.value = email.value = produto.value = "";
         }
-
-        function cancelarFormulario() {
-            document.getElementById("formulario").style.display = "none";
-        }
-
-        // Carrega fornecedores ao abrir a página
-        carregarFornecedores();
     </script>
 }

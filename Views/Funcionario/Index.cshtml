@@ -2,114 +2,172 @@
     ViewData["Title"] = "Gestão de Funcionários";
 }
 
-<h2>Funcionários</h2>
+<div class="container mt-4">
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Nome</th>
-            <th>Cargo</th>
-            <th>Email</th>
-            <th>Telefone</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody id="funcionarios"></tbody>
-</table>
+    <!-- DASHBOARD / HEADER -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body text-white"
+             style="background: linear-gradient(135deg,#0dcaf0,#0d6efd);">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h4 class="mb-1">👥 Funcionários</h4>
+                    <small>Gerencie sua equipe</small>
+                </div>
+                <button class="btn btn-light fw-bold mt-2 mt-md-0"
+                        onclick="abrirModal()">
+                    ➕ Novo Funcionário
+                </button>
+            </div>
+        </div>
+    </div>
 
-<!-- Botão para abrir formulário -->
-<button class="btn btn-primary" onclick="mostrarFormulario()">➕ Adicionar Funcionário</button>
+    <!-- TABELA -->
+    <div class="card shadow-lg border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-primary text-center">
+                        <tr>
+                            <th>#</th>
+                            <th>Nome</th>
+                            <th>Cargo</th>
+                            <th>Email</th>
+                            <th>Telefone</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="funcionarios" class="text-center"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- Formulário oculto -->
-<div id="formulario" style="display:none; margin-top:20px;">
-    <h3>Novo Funcionário</h3>
-    <label>Nome:</label>
-    <input type="text" id="nome" class="form-control" />
-    <label>Cargo:</label>
-    <input type="text" id="cargo" class="form-control" />
-    <label>Email:</label>
-    <input type="text" id="email" class="form-control" />
-    <label>Telefone:</label>
-    <input type="text" id="telefone" class="form-control" />
+<!-- MODAL -->
+<div class="modal fade" id="funcionarioModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
 
-    <button class="btn btn-success" onclick="salvarFuncionario()">Salvar</button>
-    <button class="btn btn-secondary" onclick="cancelarFormulario()">Cancelar</button>
+            <div class="modal-header text-white"
+                 style="background: linear-gradient(135deg,#0dcaf0,#0d6efd);">
+                <h5 class="modal-title">👤 Funcionário</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <input type="hidden" id="funcionarioId" />
+
+                <div class="mb-3">
+                    <label class="form-label">Nome</label>
+                    <input type="text" id="nome" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Cargo</label>
+                    <input type="text" id="cargo" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="email" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Telefone</label>
+                    <input type="text" id="telefone" class="form-control" />
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-success" onclick="salvarFuncionario()">💾 Salvar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
+        let modal;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            modal = new bootstrap.Modal(document.getElementById("funcionarioModal"));
+            carregarFuncionarios();
+        });
+
         async function carregarFuncionarios() {
             const resp = await fetch('/Funcionario/Listar');
             const funcionarios = await resp.json();
             const tbody = document.getElementById("funcionarios");
             tbody.innerHTML = "";
+
             funcionarios.forEach(f => {
-                tbody.innerHTML += `<tr>
+                tbody.innerHTML += `
+                <tr>
                     <td>${f.id}</td>
                     <td>${f.nome}</td>
                     <td>${f.cargo}</td>
-                    <td>${f.email ?? ""}</td>
-                    <td>${f.telefone ?? ""}</td>
+                    <td>${f.email ?? "-"}</td>
+                    <td>${f.telefone ?? "-"}</td>
                     <td>
-                        <button class="btn btn-warning" onclick="editarFuncionario(${f.id})">✏️ Editar</button>
-                        <button class="btn btn-danger" onclick="apagarFuncionario(${f.id})">🗑️ Apagar</button>
+                        <button class="btn btn-warning btn-sm me-1"
+                                onclick="editarFuncionario(${f.id}, '${f.nome}', '${f.cargo}', '${f.email ?? ""}', '${f.telefone ?? ""}')">
+                            ✏️
+                        </button>
+                        <button class="btn btn-danger btn-sm"
+                                onclick="apagarFuncionario(${f.id})">
+                            🗑️
+                        </button>
                     </td>
                 </tr>`;
             });
         }
 
-        async function salvarFuncionario() {
-            const funcionario = {
-                nome: document.getElementById("nome").value,
-                cargo: document.getElementById("cargo").value,
-                email: document.getElementById("email").value,
-                telefone: document.getElementById("telefone").value
-            };
-
-            await fetch('/Funcionario/Adicionar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(funcionario)
-            });
-
-            cancelarFormulario();
-            carregarFuncionarios();
+        function abrirModal() {
+            document.getElementById("funcionarioId").value = "";
+            document.querySelectorAll("#funcionarioModal input").forEach(i => i.value = "");
+            modal.show();
         }
 
-        async function editarFuncionario(id) {
-            const nome = prompt("Novo nome:");
-            const cargo = prompt("Novo cargo:");
-            const email = prompt("Novo email:");
-            const telefone = prompt("Novo telefone:");
+        function editarFuncionario(id, nome, cargo, email, telefone) {
+            document.getElementById("funcionarioId").value = id;
+            document.getElementById("nome").value = nome;
+            document.getElementById("cargo").value = cargo;
+            document.getElementById("email").value = email;
+            document.getElementById("telefone").value = telefone;
+            modal.show();
+        }
 
-            const funcionario = { nome, cargo, email, telefone };
+        async function salvarFuncionario() {
+            const id = document.getElementById("funcionarioId").value;
 
-            await fetch(`/Funcionario/Editar/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+            const funcionario = {
+                nome: nome.value,
+                cargo: cargo.value,
+                email: email.value,
+                telefone: telefone.value
+            };
+
+            const url = id
+                ? `/Funcionario/Editar/${id}`
+                : `/Funcionario/Adicionar`;
+
+            const method = id ? "PUT" : "POST";
+
+            await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(funcionario)
             });
 
+            modal.hide();
             carregarFuncionarios();
         }
 
         async function apagarFuncionario(id) {
             if (!confirm("Deseja realmente apagar este funcionário?")) return;
-
-            await fetch(`/Funcionario/Apagar/${id}`, { method: 'DELETE' });
+            await fetch(`/Funcionario/Apagar/${id}`, { method: "DELETE" });
             carregarFuncionarios();
         }
-
-        function mostrarFormulario() {
-            document.getElementById("formulario").style.display = "block";
-        }
-
-        function cancelarFormulario() {
-            document.getElementById("formulario").style.display = "none";
-        }
-
-        // Carrega funcionários ao abrir a página
-        carregarFuncionarios();
     </script>
 }

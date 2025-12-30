@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <title>@ViewData["Title"] - Organizador de Tarefas</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+
+    <!-- Seções de estilos específicas das Views -->
+    @RenderSection("Styles", required: false)
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -20,13 +23,15 @@
             <!-- Menu colapsável -->
             <div class="collapse navbar-collapse" id="navbarMain">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="/Pipeline">Pipeline de Vendas</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/Tarefas">Organizador de Tarefas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Pipeline">Vendas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Tarefas">Tarefas</a></li>
                     <li class="nav-item"><a class="nav-link" href="/Produto">Produtos</a></li>
                     <li class="nav-item"><a class="nav-link" href="/Fornecedor">Fornecedores</a></li>
                     <li class="nav-item"><a class="nav-link" href="/Financeiro">Financeiro</a></li>
                     <li class="nav-item"><a class="nav-link" href="/Dashboard">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Agenda">Agenda</a></li>
                     <li class="nav-item"><a class="nav-link" href="/Clientes">Cadastro</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Funcionario">Funcionários</a></li>
                     <li class="nav-item"><a class="nav-link" href="/Backup">Backup</a></li>
                     <li class="nav-item"><a class="nav-link" href="/Login/Logout">Logout</a></li>
                 </ul>

@@ -2,18 +2,67 @@
     ViewData["Title"] = "Gerenciar Backup";
 }
 
-<h2>Backup do Sistema</h2>
+<div class="container mt-4">
 
-<div class="card mt-4">
-    <div class="card-body text-center">
-        <p>Faça o backup completo dos dados ou restaure a partir de um arquivo ZIP.</p>
+    <!-- HEADER / DASHBOARD -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body text-white"
+             style="background: linear-gradient(135deg,#6f42c1,#0d6efd);">
+            <h4 class="mb-1">💾 Backup do Sistema</h4>
+            <small>
+                Exporte ou restaure todos os dados do sistema com segurança
+            </small>
+        </div>
+    </div>
 
-        <!-- Botão Exportar -->
-        <button class="btn btn-success m-2" onclick="exportarTudo()">📤 Exportar Tudo</button>
+    <!-- CARD BACKUP -->
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-12">
 
-        <!-- Botão Importar -->
-        <input type="file" id="arquivoZip" accept=".zip" style="display:none;" onchange="importarTudo(event)" />
-        <button class="btn btn-danger m-2" onclick="document.getElementById('arquivoZip').click()">📥 Importar Tudo</button>
+            <div class="card shadow-lg border-0">
+                <div class="card-body text-center p-4">
+
+                    <p class="text-muted mb-4">
+                        Utilize as opções abaixo para manter seus dados protegidos.
+                        Recomendamos realizar backups periódicos.
+                    </p>
+
+                    <!-- BOTÕES -->
+                    <div class="d-grid gap-3">
+
+                        <!-- EXPORTAR -->
+                        <button class="btn btn-success btn-lg"
+                                onclick="exportarTudo()">
+                            📤 Exportar Backup Completo
+                        </button>
+
+                        <!-- IMPORTAR -->
+                        <button class="btn btn-danger btn-lg"
+                                onclick="document.getElementById('arquivoZip').click()">
+                            📥 Importar Backup (ZIP)
+                        </button>
+
+                        <input type="file"
+                               id="arquivoZip"
+                               accept=".zip"
+                               hidden
+                               onchange="importarTudo(event)" />
+                    </div>
+
+                    <!-- ALERTA -->
+                    <div class="alert alert-warning mt-4 text-start">
+                        <strong>⚠ Atenção:</strong>
+                        <ul class="mb-0 ps-3">
+                            <li>Importar um backup pode substituir dados atuais.</li>
+                            <li>Certifique-se de usar um arquivo válido.</li>
+                            <li>Faça um backup antes de restaurar.</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
 
@@ -27,18 +76,28 @@
             const file = event.target.files[0];
             if (!file) return;
 
+            if (!confirm("⚠ Tem certeza que deseja importar este backup? Os dados atuais poderão ser substituídos.")) {
+                event.target.value = "";
+                return;
+            }
+
             const formData = new FormData();
             formData.append("arquivo", file);
 
-            const resp = await fetch('/Backup/ImportarTudo', {
-                method: 'POST',
-                body: formData
-            });
+            try {
+                const resp = await fetch('/Backup/ImportarTudo', {
+                    method: 'POST',
+                    body: formData
+                });
 
-            if (resp.ok) {
-                alert("Importação concluída com sucesso!");
-            } else {
-                alert("Falha ao importar backup.");
+                if (resp.ok) {
+                    alert("✅ Importação concluída com sucesso!");
+                    location.reload();
+                } else {
+                    alert("❌ Falha ao importar o backup.");
+                }
+            } catch (err) {
+                alert("❌ Erro inesperado durante a importação.");
             }
         }
     </script>

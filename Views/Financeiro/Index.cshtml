@@ -1,120 +1,267 @@
 ﻿@{
-    ViewData["Title"] = "Gestão Financeira";
+    ViewData["Title"] = "Financeiro";
 }
 
-<h2>Financeiro</h2>
+<!-- DASHBOARD FINANCEIRO -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-white"
+             style="background: linear-gradient(135deg,#198754,#157347);">
+            <div class="card-body">
+                <div class="small">Saldo Atual</div>
+                <h4 id="dashSaldo">R$ 0,00</h4>
+            </div>
+        </div>
+    </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Descrição</th>
-            <th>Valor</th>
-            <th>Data</th>
-            <th>Tipo</th>
-            <th>Categoria</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody id="financeiro"></tbody>
-</table>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-white"
+             style="background: linear-gradient(135deg,#0d6efd,#0b5ed7);">
+            <div class="card-body">
+                <div class="small">Entradas</div>
+                <h4 id="dashEntradas">R$ 0,00</h4>
+            </div>
+        </div>
+    </div>
 
-<button class="btn btn-primary" onclick="mostrarFormulario()">➕ Adicionar Registro</button>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-white"
+             style="background: linear-gradient(135deg,#dc3545,#bb2d3b);">
+            <div class="card-body">
+                <div class="small">Saídas</div>
+                <h4 id="dashSaidas">R$ 0,00</h4>
+            </div>
+        </div>
+    </div>
 
-<div id="formulario" style="display:none; margin-top:20px;">
-    <h3>Novo Registro Financeiro</h3>
-    <label>Descrição:</label>
-    <input type="text" id="descricao" class="form-control" />
-    <label>Valor:</label>
-    <input type="number" step="0.01" id="valor" class="form-control" />
-    <label>Data:</label>
-    <input type="date" id="data" class="form-control" />
-    <label>Tipo:</label>
-    <select id="tipo" class="form-control">
-        <option value="Receita">Receita</option>
-        <option value="Despesa">Despesa</option>
-    </select>
-    <label>Categoria:</label>
-    <input type="text" id="categoria" class="form-control" />
-
-    <button class="btn btn-success" onclick="salvarRegistro()">Salvar</button>
-    <button class="btn btn-secondary" onclick="cancelarFormulario()">Cancelar</button>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-dark"
+             style="background: linear-gradient(135deg,#f6c23e,#dda20a);">
+            <div class="card-body">
+                <div class="small">Movimentações</div>
+                <h4 id="dashQtd">0</h4>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- HEADER -->
+<div class="card shadow-sm mb-3 border-0">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap"
+         style="background: linear-gradient(135deg,#198754,#0d6efd); color:white;">
+        <h5 class="mb-2 mb-md-0">💰 Controle Financeiro</h5>
+
+        <button class="btn btn-light fw-bold text-success"
+                onclick="abrirModalNovo()">
+            ➕ Nova Movimentação
+        </button>
+    </div>
+</div>
+
+<!-- TABELA -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background:#f8f9fc;">
+                    <tr class="text-secondary">
+                        <th>#</th>
+                        <th>Descrição</th>
+                        <th>Tipo</th>
+                        <th>Valor</th>
+                        <th class="d-none d-md-table-cell">Categoria</th>
+                        <th>Data</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="financeiro"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="modalFinanceiro" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header"
+                 style="background: linear-gradient(135deg,#0d6efd,#198754); color:white;">
+                <h5 class="modal-title" id="modalTitulo">Movimentação</h5>
+                <button class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="movId">
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Descrição</label>
+                        <input type="text" id="descricao" class="form-control">
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">Tipo</label>
+                        <select id="tipo" class="form-select">
+                            <option value="Entrada">Entrada</option>
+                            <option value="Saida">Saída</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">Valor</label>
+                        <input type="number" step="0.01" id="valor" class="form-control">
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Categoria</label>
+                        <input type="text" id="categoria" class="form-control">
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Data</label>
+                        <input type="date" id="data" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button class="btn btn-success"
+                        onclick="salvarMovimentacao()">
+                    💾 Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .form-control:focus, .form-select:focus {
+            border-color: #198754;
+            box-shadow: 0 0 0 .15rem rgba(25,135,84,.25);
+        }
+    </style>
+}
 
 @section Scripts {
     <script>
+        let modal;
+        let cache = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            modal = new bootstrap.Modal(document.getElementById("modalFinanceiro"));
+            carregarFinanceiro();
+        });
+
         async function carregarFinanceiro() {
             const resp = await fetch('/Financeiro/Listar');
-            const registros = await resp.json();
-            const tbody = document.getElementById("financeiro");
-            tbody.innerHTML = "";
-            registros.forEach(r => {
-                tbody.innerHTML += `<tr>
-                    <td>${r.id}</td>
-                    <td>${r.descricao}</td>
-                    <td>${r.valor}</td>
-                    <td>${new Date(r.data).toLocaleDateString()}</td>
-                    <td>${r.tipo}</td>
-                    <td>${r.categoria}</td>
-                    <td>
-                        <button class="btn btn-warning" onclick="editarRegistro(${r.id})">✏️ Editar</button>
-                        <button class="btn btn-danger" onclick="apagarRegistro(${r.id})">🗑️ Apagar</button>
+            cache = await resp.json();
+
+            atualizarDashboard();
+            renderTabela();
+        }
+
+        function atualizarDashboard() {
+            let entradas = 0, saidas = 0;
+
+            cache.forEach(m => {
+                if (m.tipo === "Entrada") entradas += m.valor;
+                else saidas += m.valor;
+            });
+
+            dashEntradas.innerText = `R$ ${entradas.toFixed(2)}`;
+            dashSaidas.innerText = `R$ ${saidas.toFixed(2)}`;
+            dashSaldo.innerText = `R$ ${(entradas - saidas).toFixed(2)}`;
+            dashQtd.innerText = cache.length;
+        }
+
+        function badgeTipo(tipo) {
+            return tipo === "Entrada"
+                ? `<span class="badge bg-success">Entrada</span>`
+                : `<span class="badge bg-danger">Saída</span>`;
+        }
+
+        function renderTabela() {
+            financeiro.innerHTML = "";
+
+            cache.forEach(m => {
+                financeiro.innerHTML += `
+                <tr>
+                    <td>${m.id}</td>
+                    <td>${m.descricao}</td>
+                    <td>${badgeTipo(m.tipo)}</td>
+                    <td class="${m.tipo === 'Entrada' ? 'text-success' : 'text-danger'}">
+                        R$ ${m.valor.toFixed(2)}
+                    </td>
+                    <td class="d-none d-md-table-cell">${m.categoria}</td>
+                    <td>${new Date(m.data).toLocaleDateString()}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-warning text-white me-1"
+                                onclick="abrirModalEditar(${m.id})">✏️</button>
+                        <button class="btn btn-sm btn-danger"
+                                onclick="apagarMovimentacao(${m.id})">🗑️</button>
                     </td>
                 </tr>`;
             });
         }
 
-        async function salvarRegistro() {
-            const registro = {
-                descricao: document.getElementById("descricao").value,
-                valor: Number(document.getElementById("valor").value),
-                data: document.getElementById("data").value,
-                tipo: document.getElementById("tipo").value,
-                categoria: document.getElementById("categoria").value
+        function abrirModalNovo() {
+            modalTitulo.innerText = "Nova Movimentação";
+            movId.value = "";
+            limpar();
+            modal.show();
+        }
+
+        function abrirModalEditar(id) {
+            const m = cache.find(x => x.id === id);
+            movId.value = m.id;
+            descricao.value = m.descricao;
+            tipo.value = m.tipo;
+            valor.value = m.valor;
+            categoria.value = m.categoria;
+            data.value = m.data.split('T')[0];
+
+            modalTitulo.innerText = "Editar Movimentação";
+            modal.show();
+        }
+
+        async function salvarMovimentacao() {
+            const id = movId.value;
+
+            const mov = {
+                descricao: descricao.value,
+                tipo: tipo.value,
+                valor: Number(valor.value),
+                categoria: categoria.value,
+                data: data.value
             };
 
-            await fetch('/Financeiro/Adicionar', {
-                method: 'POST',
+            await fetch(id ? `/Financeiro/Editar/${id}` : `/Financeiro/Adicionar`, {
+                method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(registro)
+                body: JSON.stringify(mov)
             });
 
-            cancelarFormulario();
+            modal.hide();
             carregarFinanceiro();
         }
 
-        async function editarRegistro(id) {
-            const descricao = prompt("Nova descrição:");
-            const valor = Number(prompt("Novo valor:").replace(',', '.'));
-            const data = prompt("Nova data (YYYY-MM-DD):");
-            const tipo = prompt("Novo tipo (Receita/Despesa):");
-            const categoria = prompt("Nova categoria:");
-
-            const registro = { descricao, valor, data, tipo, categoria };
-
-            await fetch(`/Financeiro/Editar/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(registro)
-            });
-
-            carregarFinanceiro();
-        }
-
-        async function apagarRegistro(id) {
-            if (!confirm("Deseja realmente apagar este registro?")) return;
+        async function apagarMovimentacao(id) {
+            if (!confirm("Excluir movimentação?")) return;
             await fetch(`/Financeiro/Apagar/${id}`, { method: 'DELETE' });
             carregarFinanceiro();
         }
 
-        function mostrarFormulario() {
-            document.getElementById("formulario").style.display = "block";
+        function limpar() {
+            descricao.value = tipo.value = categoria.value = "";
+            valor.value = 0;
+            data.value = "";
         }
-
-        function cancelarFormulario() {
-            document.getElementById("formulario").style.display = "none";
-        }
-
-        carregarFinanceiro();
     </script>
 }
