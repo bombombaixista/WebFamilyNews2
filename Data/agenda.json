@@ -1,1 +1,56 @@
-[{"id":1,"titulo":"Grava\u00E7\u00E3o","descricao":"Base e voz guia","inicio":"2026-01-02T11:00:00-03:00","fim":"2026-01-02T15:00:00-03:00","diaInteiro":false}]
+[
+  {
+    "id": 2,
+    "titulo": "Uber",
+    "descricao": "",
+    "categoria": "Tarefa",
+    "inicio": "2026-01-11T15:00:00",
+    "fim": "2026-01-11T20:00:00",
+    "diaInteiro": false
+  },
+  {
+    "id": 3,
+    "titulo": "Grava\u00E7\u00E3o de baixo el\u00E9trico",
+    "descricao": "",
+    "categoria": "Pessoal",
+    "inicio": "2026-01-12T13:30:00",
+    "fim": "2026-01-12T15:00:00",
+    "diaInteiro": false
+  },
+  {
+    "id": 5,
+    "titulo": "Carioquissima",
+    "descricao": "",
+    "categoria": "Compromisso",
+    "inicio": "2026-01-17T10:00:00",
+    "fim": "2026-01-17T22:00:00",
+    "diaInteiro": false
+  },
+  {
+    "id": 6,
+    "titulo": "Carioquissima",
+    "descricao": "",
+    "categoria": "Compromisso",
+    "inicio": "2026-01-18T10:00:00",
+    "fim": "2026-01-18T22:00:00",
+    "diaInteiro": false
+  },
+  {
+    "id": 7,
+    "titulo": "Uber",
+    "descricao": "",
+    "categoria": "Compromisso",
+    "inicio": "2026-01-13T09:30:00",
+    "fim": "2026-01-13T15:00:00",
+    "diaInteiro": false
+  },
+  {
+    "id": 8,
+    "titulo": "Uber",
+    "descricao": "",
+    "categoria": "Reuni\u00E3o",
+    "inicio": "2026-01-10T20:00:00",
+    "fim": "2026-01-10T23:59:00",
+    "diaInteiro": false
+  }
+]

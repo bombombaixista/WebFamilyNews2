@@ -1,5 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Agenda";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h2 class="text-center mb-4 bg-primary text-white p-3 rounded shadow">
@@ -8,177 +9,88 @@
 
 <!-- DASHBOARD -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white text-center shadow">
-            <div class="card-body">
-                <h6>Total</h6>
-                <h2 id="totalEventos">0</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card bg-success text-white text-center shadow">
-            <div class="card-body">
-                <h6>Hoje</h6>
-                <h2 id="eventosHoje">0</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card bg-warning text-dark text-center shadow">
-            <div class="card-body">
-                <h6>Mês</h6>
-                <h2 id="eventosMes">0</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card bg-info text-white text-center shadow">
-            <div class="card-body">
-                <h6>Reuniões</h6>
-                <h2 id="eventosReuniao">0</h2>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- FILTROS -->
-<div class="card shadow-sm mb-4 filtro-destaque">
-    <div class="card-body row g-2 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label">Buscar</label>
-            <input id="filtroBusca" class="form-control" placeholder="Título ou descrição">
-        </div>
-
-        <div class="col-md-2">
-            <label class="form-label">Categoria</label>
-            <select id="filtroCategoria" class="form-select">
-                <option value="">Todas</option>
-                <option>Reunião</option>
-                <option>Tarefa</option>
-                <option>Pessoal</option>
-                <option>Compromisso</option>
-            </select>
-        </div>
-
-        <div class="col-md-2">
-            <label class="form-label">Período</label>
-            <select id="filtroPeriodo" class="form-select">
-                <option value="">Manual</option>
-                <option value="hoje">Hoje</option>
-                <option value="mes">Mês</option>
-                <option value="ano">Ano</option>
-            </select>
-        </div>
-
-        <div class="col-md-2">
-            <label class="form-label">Início</label>
-            <input type="date" id="filtroInicio" class="form-control">
-        </div>
-
-        <div class="col-md-2">
-            <label class="form-label">Fim</label>
-            <input type="date" id="filtroFim" class="form-control">
-        </div>
-
-        <div class="col-md-1 d-grid gap-1">
-            <button class="btn btn-success" onclick="aplicarFiltros()">Filtrar</button>
-            <button class="btn btn-secondary" onclick="limparFiltros()">Limpar</button>
-        </div>
-    </div>
-</div>
-
-<div class="mb-3 text-end">
-    <button class="btn btn-primary" id="btnNovoEvento">➕ Novo Evento</button>
+    <div class="col-md-3"><div class="card text-white" style="background:#0d6efd"><div class="card-body"><small>Total</small><h4 id="dashTotal">0</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-white" style="background:#198754"><div class="card-body"><small>Hoje</small><h4 id="dashHoje">0</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-white" style="background:#6f42c1"><div class="card-body"><small>Reuniões</small><h4 id="dashReunioes">0</h4></div></div></div>
+    <div class="col-md-3"><div class="card text-white" style="background:#fd7e14"><div class="card-body"><small>Compromissos</small><h4 id="dashCompromissos">0</h4></div></div></div>
 </div>
 
 <!-- GRÁFICOS -->
-<div class="row mb-4">
-    <div class="col-md-6 text-center">
-        <div style="height:200px; width:300px; margin:auto;">
-            <canvas id="graficoCategoria"></canvas>
+<div class="row text-center mb-4">
+    <div class="col-md-4"><div class="grafico-box"><canvas id="graficoPizza"></canvas></div><small>Por Categoria</small></div>
+    <div class="col-md-4"><div class="grafico-box"><canvas id="graficoDonut"></canvas></div><small>Eventos Hoje</small></div>
+    <div class="col-md-4"><div class="grafico-box"><canvas id="graficoBarra"></canvas></div><small>Resumo</small></div>
+</div>
+
+<!-- FILTROS -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-body row g-2">
+        <div class="col-md-4">
+            <input id="filtroBusca" class="form-control" placeholder="Filtrar por título ou descrição">
+        </div>
+        <div class="col-md-4">
+            <select id="filtroCategoria" class="form-select">
+                <option value="">Todas</option>
+                <option>Reunião</option>
+                <option>Compromisso</option>
+                <option>Pessoal</option>
+                <option>Tarefa</option>
+            </select>
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+            <button class="btn btn-primary w-100" onclick="aplicarFiltros()">Filtrar</button>
+            <button class="btn btn-secondary w-100" onclick="limparFiltros()">Limpar</button>
         </div>
     </div>
-    <div class="col-md-6 text-center">
-        <div style="height:200px; width:300px; margin:auto;">
-            <canvas id="graficoMes"></canvas>
-        </div>
-    </div>
+</div>
+
+<!-- BOTÕES NOVO / EXPORTAR / IMPORTAR CSV -->
+<div class="mb-3 d-flex gap-2 justify-content-end">
+    <button class="btn btn-success" onclick="novoEvento()">➕ Novo Evento</button>
+    <button class="btn btn-outline-primary" onclick="exportarCSV()">📄 Exportar CSV</button>
+    <input type="file" id="importCSVInput" accept=".csv" style="display:none" onchange="importarCSV(event)">
+    <button class="btn btn-outline-secondary" onclick="document.getElementById('importCSVInput').click()">📥 Importar CSV</button>
 </div>
 
 <div id="calendar"></div>
 
 <!-- MODAL -->
-<div class="modal fade" id="eventModal" tabindex="-1">
+<div class="modal fade" id="eventModal">
     <div class="modal-dialog">
         <div class="modal-content">
-
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Evento</h5>
+                <h5 class="modal-title" id="modalTitulo">Evento</h5>
                 <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-
             <div class="modal-body">
-                <form id="eventForm">
-                    <div class="mb-3">
-                        <label>Título</label>
-                        <input id="titulo" class="form-control" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label>Descrição</label>
-                        <textarea id="descricao" class="form-control"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label>Categoria</label>
-                        <select id="categoria" class="form-select">
-                            <option>Reunião</option>
-                            <option>Tarefa</option>
-                            <option>Pessoal</option>
-                            <option>Compromisso</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label>Início</label>
-                        <input type="datetime-local" id="inicio" class="form-control" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label>Fim</label>
-                        <input type="datetime-local" id="fim" class="form-control" />
-                    </div>
-
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="diaInteiro" />
-                        <label class="form-check-label">Dia inteiro</label>
-                    </div>
-                </form>
-            </div>
-
-            <div class="modal-footer d-flex justify-content-between">
-                <button class="btn btn-danger d-none" id="deleteEventBtn">🗑️ Excluir</button>
-                <div>
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-success" id="saveEventBtn">Salvar</button>
+                <input type="hidden" id="id">
+                <div class="mb-2"><input id="titulo" class="form-control" placeholder="Título"></div>
+                <div class="mb-2">
+                    <select id="categoria" class="form-select">
+                        <option>Reunião</option>
+                        <option>Compromisso</option>
+                        <option>Pessoal</option>
+                        <option>Tarefa</option>
+                    </select>
                 </div>
+                <div class="mb-2"><textarea id="descricao" class="form-control" placeholder="Descrição"></textarea></div>
+                <div class="mb-2"><input type="datetime-local" id="inicio" class="form-control"></div>
+                <div class="mb-2"><input type="datetime-local" id="fim" class="form-control"></div>
             </div>
-
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="excluirEvento()">Excluir</button>
+                <button class="btn btn-success" onclick="salvarEvento()">Salvar</button>
+            </div>
         </div>
     </div>
 </div>
 
 @section Styles {
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
     <style>
-        .filtro-destaque {
-            background: #f1f8f5;
-            border-left: 6px solid #198754;
+        .grafico-box {
+            max-width: 160px;
+            height: 140px;
+            margin: auto;
         }
     </style>
 }
@@ -189,150 +101,232 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        let calendar, eventos = [], eventoEditando = null, modal;
-        const coresCategoria = { "Reunião":"#0d6efd","Tarefa":"#198754","Pessoal":"#6f42c1","Compromisso":"#fd7e14" };
-        const calendarEl = () => document.getElementById("calendar");
+        let eventos = [];
+        let calendar, modal;
+        let chartPizza, chartDonut, chartBarra;
 
-        function loadState(){ eventos = JSON.parse(localStorage.getItem("agendaData")||"[]"); return eventos; }
-        function saveState(){ localStorage.setItem("agendaData",JSON.stringify(eventos)); atualizarDashboard(); renderGraficos(); }
-
-        function toDateTimeLocal(date){ const pad=n=>String(n).padStart(2,"0"); return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; }
-        function dateOnlyToDateTimeLocal(dateOnly){ if(!dateOnly) return ""; return `${dateOnly}T00:00`; }
-
-        document.addEventListener("DOMContentLoaded",()=>{
+        document.addEventListener("DOMContentLoaded", async () => {
             modal = new bootstrap.Modal(document.getElementById("eventModal"));
-            document.getElementById("btnNovoEvento").onclick = ()=>{ resetarModal(); modal.show(); }
+            await carregarECriarCalendar();
+        });
 
-            calendar = new FullCalendar.Calendar(calendarEl(),{
-                locale:"pt-br",
-                initialView:"dayGridMonth",
-                editable:true,
-                selectable:true,
-                headerToolbar:{left:"prev,next today",center:"title",right:"dayGridMonth,timeGridWeek,timeGridDay"},
-                events: loadState(),
-                eventClick: info=>{
-                    eventoEditando = info.event;
-                    document.getElementById("titulo").value = info.event.title||"";
-                    document.getElementById("descricao").value = info.event.extendedProps?.descricao||"";
-                    document.getElementById("categoria").value = info.event.extendedProps?.categoria||"Reunião";
-                    document.getElementById("diaInteiro").checked = !!info.event.allDay;
-                    if(info.event.allDay){
-                        document.getElementById("inicio").value = dateOnlyToDateTimeLocal(info.event.startStr);
-                        document.getElementById("fim").value = info.event.endStr?dateOnlyToDateTimeLocal(info.event.endStr):"";
-                    }else{
-                        document.getElementById("inicio").value = info.event.startStr?info.event.startStr.slice(0,16):"";
-                        document.getElementById("fim").value = info.event.endStr?info.event.endStr.slice(0,16):"";
-                    }
-                    document.getElementById("deleteEventBtn").classList.remove("d-none");
-                    modal.show();
-                },
-                eventDrop: info=>atualizarEvento(info),
-                eventResize: info=>atualizarEvento(info),
-                eventDidMount: info=>{
-                    if(info.event.extendedProps?.backgroundColor){ info.el.style.backgroundColor = info.event.extendedProps.backgroundColor; info.el.style.borderColor = info.event.extendedProps.backgroundColor; }
-                    else if(info.event.backgroundColor){ info.el.style.backgroundColor = info.event.backgroundColor; }
-                }
+        async function carregarECriarCalendar() {
+            eventos = await carregarEventos();
+
+            calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
+                locale: "pt-br",
+                initialView: "dayGridMonth",
+                events: eventos,
+                eventClick: abrirEvento
             });
+
             calendar.render();
-            atualizarDashboard();
-            renderGraficos();
-        });
-
-        document.getElementById("saveEventBtn").onclick=()=>{
-            const title = document.getElementById("titulo").value.trim();
-            if(!title) return alert("Título obrigatório");
-            const descricao=document.getElementById("descricao").value.trim();
-            const categoria=document.getElementById("categoria").value;
-            const isAllDay=document.getElementById("diaInteiro").checked;
-            let startRaw=document.getElementById("inicio").value,endRaw=document.getElementById("fim").value;
-            let startForCalendar,endForCalendar;
-            if(isAllDay){
-                if(!startRaw) return alert("Data início obrigatória");
-                startForCalendar=startRaw.split("T")[0];
-                endForCalendar=endRaw?endRaw.split("T")[0]:null;
-            }else{ if(!startRaw) return alert("Início obrigatório"); startForCalendar=startRaw; endForCalendar=endRaw||null; }
-            const cor = coresCategoria[categoria]||"#0d6efd";
-            if(eventoEditando){
-                eventoEditando.setProp("title",title); eventoEditando.setStart(startForCalendar);
-                eventoEditando.setEnd(endForCalendar||null); eventoEditando.setAllDay(isAllDay);
-                eventoEditando.setExtendedProp("categoria",categoria);
-                eventoEditando.setExtendedProp("descricao",descricao);
-                eventoEditando.setProp("backgroundColor",cor);
-                const idx=eventos.findIndex(e=>e.id==eventoEditando.id);
-                if(idx>=0){ const plain=eventoEditando.toPlainObject(); plain.extendedProps=plain.extendedProps||{}; plain.extendedProps.backgroundColor=cor; eventos[idx]=plain; }
-            }else{
-                const novo={id:Date.now(),title, start:startForCalendar,end:endForCalendar||null,allDay:isAllDay,backgroundColor:cor,extendedProps:{categoria,descricao,backgroundColor:cor}};
-                eventos.push(novo); calendar.addEvent(novo);
-            }
-            saveState(); modal.hide();
-        };
-
-        document.getElementById("deleteEventBtn").onclick=()=>{
-            if(!eventoEditando||!confirm("Deseja excluir?")) return;
-            eventos=eventos.filter(e=>e.id!=eventoEditando.id); eventoEditando.remove(); eventoEditando=null;
-            saveState(); modal.hide();
-        };
-
-        function atualizarEvento(info){ const idx=eventos.findIndex(e=>e.id==info.event.id); if(idx>=0){ eventos[idx]=info.event.toPlainObject(); saveState(); } }
-
-        function resetarModal(){ document.getElementById("eventForm").reset(); eventoEditando=null; document.getElementById("deleteEventBtn").classList.add("d-none"); }
-
-        function atualizarDashboard(){
-            const hoje=new Date();
-            totalEventos.innerText=eventos.length;
-            eventosHoje.innerText=eventos.filter(e=>{
-                if(!e.start) return false; const d=new Date(e.allDay?e.start:e.start); return d.toDateString()===hoje.toDateString();
-            }).length;
-            eventosMes.innerText=eventos.filter(e=>{
-                if(!e.start) return false; const d=new Date(e.allDay?e.start:e.start); return d.getMonth()===hoje.getMonth()&&d.getFullYear()===hoje.getFullYear();
-            }).length;
-            eventosReuniao.innerText=eventos.filter(e=>e.extendedProps?.categoria==="Reunião").length;
+            atualizarTudo(eventos);
         }
 
-        // ===== FILTROS =====
-        function aplicarFiltros(){
-            const busca=filtroBusca.value.toLowerCase();
-            const cat=filtroCategoria.value; const ini=filtroInicio.value; const fim=filtroFim.value;
-            const filtered=eventos.filter(e=>{
-                const s=e.start; if(!s) return false;
-                if(busca&&!((e.title||"").toLowerCase().includes(busca)||(e.extendedProps?.descricao||"").toLowerCase().includes(busca))) return false;
-                if(cat&&e.extendedProps?.categoria!==cat) return false;
-                if(ini&&new Date(e.allDay?s:s)<new Date(ini)) return false;
-                if(fim&&new Date(e.allDay?s:s)>new Date(fim)) return false;
-                return true;
-            });
-            calendar.removeAllEvents(); filtered.forEach(ev=>calendar.addEvent(ev));
-            renderGraficos(filtered); atualizarDashboard();
+        async function carregarEventos() {
+            const res = await fetch("/Agenda/Listar");
+            const lista = await res.json();
+            return lista.map(e => ({
+                id: e.id,
+                title: e.titulo,
+                start: e.inicio,
+                end: e.fim || undefined,
+                extendedProps: {
+                    categoria: e.categoria,
+                    descricao: e.descricao || ""
+                }
+            }));
         }
 
-        function limparFiltros(){ filtroBusca.value=""; filtroCategoria.value=""; filtroInicio.value=""; filtroFim.value=""; calendar.removeAllEvents(); eventos.forEach(ev=>calendar.addEvent(ev)); renderGraficos(); atualizarDashboard(); }
+        function aplicarFiltros() {
+            const busca = (document.getElementById("filtroBusca").value || "").toLowerCase();
+            const categoria = document.getElementById("filtroCategoria").value;
 
-        filtroPeriodo.addEventListener("change",()=>{
-            const hoje=new Date().toISOString().slice(0,10);
-            if(filtroPeriodo.value==="hoje"){ filtroInicio.value=hoje; filtroFim.value=hoje; }
-            if(filtroPeriodo.value==="mes"){ const d=new Date(); filtroInicio.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; filtroFim.value=hoje; }
-            if(filtroPeriodo.value==="ano"){ const y=new Date().getFullYear(); filtroInicio.value=`${y}-01-01`; filtroFim.value=hoje; }
-            aplicarFiltros();
-        });
+            const filtrados = eventos.filter(e =>
+                (!busca || e.title.toLowerCase().includes(busca) || e.extendedProps.descricao.toLowerCase().includes(busca)) &&
+                (!categoria || e.extendedProps.categoria === categoria)
+            );
 
-        // ===== GRÁFICOS =====
-        let chartCategoria, chartMes;
-        function renderGraficos(list=eventos){
-            const ctxCat=document.getElementById("graficoCategoria").getContext("2d");
-            const categorias=[...new Set(list.map(e=>e.extendedProps?.categoria))];
-            const countsCat=categorias.map(c=>list.filter(e=>e.extendedProps?.categoria===c).length);
-            if(chartCategoria) chartCategoria.destroy();
-            chartCategoria=new Chart(ctxCat,{type:"pie",data:{labels:categorias,datasets:[{data:countsCat,backgroundColor:['#0d6efd','#198754','#6f42c1','#fd7e14']}]},options:{responsive:true,maintainAspectRatio:false}});
+            calendar.removeAllEvents();
+            calendar.addEventSource(filtrados);
+            atualizarTudo(filtrados);
+        }
 
-            const ctxMes=document.getElementById("graficoMes").getContext("2d");
-            const meses={};
-            list.forEach(e=>{
-                const d=new Date(e.start);
-                const m=d.toLocaleString('pt-BR',{month:'short',year:'numeric'});
-                meses[m]=(meses[m]||0)+1;
+        function limparFiltros() {
+            document.getElementById("filtroBusca").value = "";
+            document.getElementById("filtroCategoria").value = "";
+            calendar.removeAllEvents();
+            calendar.addEventSource(eventos);
+            atualizarTudo(eventos);
+        }
+
+        function atualizarTudo(lista) {
+            const hoje = new Date();
+
+            document.getElementById("dashTotal").innerText = lista.length;
+            document.getElementById("dashHoje").innerText =
+                lista.filter(e => new Date(e.start).toDateString() === hoje.toDateString()).length;
+            document.getElementById("dashReunioes").innerText =
+                lista.filter(e => e.extendedProps.categoria === "Reunião").length;
+            document.getElementById("dashCompromissos").innerText =
+                lista.filter(e => e.extendedProps.categoria === "Compromisso").length;
+
+            atualizarGraficos(lista);
+        }
+
+        function atualizarGraficos(lista) {
+            if (chartPizza) chartPizza.destroy();
+            if (chartDonut) chartDonut.destroy();
+            if (chartBarra) chartBarra.destroy();
+
+            const categorias = ["Reunião", "Compromisso", "Pessoal", "Tarefa"];
+            const qtdCat = categorias.map(c => lista.filter(e => e.extendedProps.categoria === c).length);
+
+            chartPizza = new Chart(document.getElementById("graficoPizza"), {
+                type: "pie",
+                data: { labels: categorias, datasets: [{ data: qtdCat, backgroundColor: ["#ffc107","#0dcaf0","#6f42c1","#198754"] }] },
+                options: { maintainAspectRatio: false }
             });
-            if(chartMes) chartMes.destroy();
-            chartMes=new Chart(ctxMes,{type:"bar",data:{labels:Object.keys(meses),datasets:[{label:'Eventos',data:Object.values(meses),backgroundColor:'#0d6efd'}]},options:{responsive:true,maintainAspectRatio:false}});
+
+            const hojeQtd = lista.filter(e => new Date(e.start).toDateString() === new Date().toDateString()).length;
+            chartDonut = new Chart(document.getElementById("graficoDonut"), {
+                type: "doughnut",
+                data: { labels: ["Hoje", "Outros"], datasets: [{ data: [hojeQtd, lista.length - hojeQtd], backgroundColor: ["#198754","#adb5bd"] }] },
+                options: { cutout: "65%", maintainAspectRatio: false }
+            });
+
+            chartBarra = new Chart(document.getElementById("graficoBarra"), {
+                type: "bar",
+                data: {
+                    labels: ["Total", "Hoje", "Reuniões", "Compromissos"],
+                    datasets: [{
+                        data: [
+                            lista.length,
+                            hojeQtd,
+                            lista.filter(e => e.extendedProps.categoria === "Reunião").length,
+                            lista.filter(e => e.extendedProps.categoria === "Compromisso").length
+                        ],
+                        backgroundColor: ["#0d6efd","#198754","#6f42c1","#fd7e14"]
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function novoEvento() {
+            ["id","titulo","descricao","inicio","fim"].forEach(id => document.getElementById(id).value = "");
+            document.getElementById("categoria").value = "Reunião";
+            document.getElementById("modalTitulo").innerText = "Novo Evento";
+            modal.show();
+        }
+
+        function abrirEvento(info) {
+            const e = info.event;
+            document.getElementById("id").value = e.id;
+            document.getElementById("titulo").value = e.title;
+            document.getElementById("categoria").value = e.extendedProps.categoria;
+            document.getElementById("descricao").value = e.extendedProps.descricao || "";
+            document.getElementById("inicio").value = e.startStr.substring(0,16);
+            document.getElementById("fim").value = e.endStr ? e.endStr.substring(0,16) : "";
+            document.getElementById("modalTitulo").innerText = "Editar Evento";
+            modal.show();
+        }
+
+        async function salvarEvento() {
+            const evento = {
+                id: Number(document.getElementById("id").value || 0),
+                titulo: document.getElementById("titulo").value,
+                categoria: document.getElementById("categoria").value,
+                descricao: document.getElementById("descricao").value,
+                inicio: document.getElementById("inicio").value,
+                fim: document.getElementById("fim").value
+            };
+
+            await fetch("/Agenda/Salvar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(evento)
+            });
+
+            modal.hide();
+            eventos = await carregarEventos();
+            calendar.removeAllEvents();
+            calendar.addEventSource(eventos);
+            atualizarTudo(eventos);
+        }
+
+        async function excluirEvento() {
+            const id = Number(document.getElementById("id").value);
+            if (!id) return;
+
+            await fetch(`/Agenda/Excluir/${id}`, { method: "DELETE" });
+
+            modal.hide();
+            eventos = await carregarEventos();
+            calendar.removeAllEvents();
+            calendar.addEventSource(eventos);
+            atualizarTudo(eventos);
+        }
+
+        // ===== CSV =====
+        function exportarCSV() {
+            if (!eventos.length) return alert("Não há eventos para exportar.");
+
+            const csvHeader = ["ID","Título","Categoria","Descrição","Início","Fim"];
+            const csvRows = eventos.map(e => [
+                e.id,
+                `"${e.title.replace(/"/g, '""')}"`,
+                e.extendedProps.categoria,
+                `"${(e.extendedProps.descricao || "").replace(/"/g, '""')}"`,
+                e.start,
+                e.end || ""
+            ].join(","));
+
+            const csvContent = [csvHeader.join(","), ...csvRows].join("\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `agenda_export_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importarCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async e => {
+                const text = e.target.result;
+                const linhas = text.split(/\r?\n/).slice(1); // ignora cabeçalho
+                for (let linha of linhas) {
+                    if (!linha.trim()) continue;
+                    const [id, titulo, categoria, descricao, inicio, fim] = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(s => s.replace(/^"|"$/g,"").trim());
+
+                    await fetch("/Agenda/Salvar", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            id: Number(id) || 0,
+                            titulo,
+                            categoria,
+                            descricao,
+                            inicio,
+                            fim
+                        })
+                    });
+                }
+
+                eventos = await carregarEventos();
+                calendar.removeAllEvents();
+                calendar.addEventSource(eventos);
+                atualizarTudo(eventos);
+                alert("Importação concluída!");
+            };
+            reader.readAsText(file);
         }
     </script>
 }

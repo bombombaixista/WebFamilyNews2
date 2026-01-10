@@ -1,88 +1,137 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Kanban.Models;
 using System.Text.Json;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+using Kanban.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Kanban.Controllers
 {
     [Authorize]
+
     [Route("[controller]")]
     public class AgendaController : Controller
     {
-        private readonly string _dataPath;
-        private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
+        private readonly string _filePath;
+        private readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        };
 
         public AgendaController(IWebHostEnvironment env)
         {
-            _dataPath = Path.Combine(env.ContentRootPath, "Data");
-            Directory.CreateDirectory(_dataPath);
+            var dataFolder = Path.Combine(env.ContentRootPath, "Data");
+            Directory.CreateDirectory(dataFolder);
+            _filePath = Path.Combine(dataFolder, "agenda.json");
         }
 
+        // ====================== INDEX ======================
         [HttpGet]
-        public IActionResult Index() => View();
+        public IActionResult Index()
+        {
+            return View(); // mantém a view existente
+        }
 
+        // ====================== LISTAR ======================
         [HttpGet("Listar")]
         public IActionResult Listar()
         {
-            var path = Path.Combine(_dataPath, "agenda.json");
-            if (!System.IO.File.Exists(path)) return Ok(new List<EventoAgenda>());
+            if (!System.IO.File.Exists(_filePath))
+                return Ok(new List<AgendaEvento>());
 
-            var json = System.IO.File.ReadAllText(path);
-            var eventos = JsonSerializer.Deserialize<List<EventoAgenda>>(json, _jsonOptions) ?? new List<EventoAgenda>();
+            var json = System.IO.File.ReadAllText(_filePath);
+            var eventos = JsonSerializer.Deserialize<List<AgendaEvento>>(json, _jsonOptions) ?? new List<AgendaEvento>();
             return Ok(eventos);
         }
 
-        [HttpPost("Adicionar")]
-        public IActionResult Adicionar([FromBody] EventoAgenda evento)
+        // ====================== SALVAR ======================
+        [HttpPost("Salvar")]
+        public IActionResult Salvar([FromBody] AgendaEvento evento)
         {
-            var path = Path.Combine(_dataPath, "agenda.json");
-            var eventos = System.IO.File.Exists(path)
-                ? JsonSerializer.Deserialize<List<EventoAgenda>>(System.IO.File.ReadAllText(path), _jsonOptions) ?? new List<EventoAgenda>()
-                : new List<EventoAgenda>();
+            if (evento == null) return BadRequest("Evento inválido");
 
-            evento.Id = eventos.Count > 0 ? eventos.Max(e => e.Id) + 1 : 1;
-            evento.Inicio = evento.Inicio.ToLocalTime();
-            evento.Fim = evento.Fim.ToLocalTime();
+            var eventosExistentes = System.IO.File.Exists(_filePath)
+                ? JsonSerializer.Deserialize<List<AgendaEvento>>(System.IO.File.ReadAllText(_filePath), _jsonOptions)
+                ?? new List<AgendaEvento>()
+                : new List<AgendaEvento>();
 
-            eventos.Add(evento);
+            if (evento.Id > 0)
+            {
+                var e = eventosExistentes.FirstOrDefault(ev => ev.Id == evento.Id);
+                if (e != null)
+                {
+                    e.Titulo = evento.Titulo;
+                    e.Categoria = evento.Categoria;
+                    e.Descricao = evento.Descricao;
+                    e.Inicio = evento.Inicio;
+                    e.Fim = evento.Fim;
+                }
+                else
+                {
+                    evento.Id = eventosExistentes.Count == 0 ? 1 : eventosExistentes.Max(ev => ev.Id) + 1;
+                    eventosExistentes.Add(evento);
+                }
+            }
+            else
+            {
+                evento.Id = eventosExistentes.Count == 0 ? 1 : eventosExistentes.Max(ev => ev.Id) + 1;
+                eventosExistentes.Add(evento);
+            }
 
-            System.IO.File.WriteAllText(path, JsonSerializer.Serialize(eventos, _jsonOptions));
+            System.IO.File.WriteAllText(_filePath, JsonSerializer.Serialize(eventosExistentes, _jsonOptions));
             return Ok(evento);
         }
 
-        [HttpPut("Editar/{id}")]
-        public IActionResult Editar(int id, [FromBody] EventoAgenda eventoAtualizado)
+        // ====================== EXCLUIR ======================
+        [HttpDelete("Excluir/{id}")]
+        public IActionResult Excluir(int id)
         {
-            var path = Path.Combine(_dataPath, "agenda.json");
-            if (!System.IO.File.Exists(path)) return NotFound();
+            if (!System.IO.File.Exists(_filePath)) return NotFound();
 
-            var eventos = JsonSerializer.Deserialize<List<EventoAgenda>>(System.IO.File.ReadAllText(path), _jsonOptions) ?? new List<EventoAgenda>();
-            var evento = eventos.FirstOrDefault(e => e.Id == id);
+            var eventosExistentes = JsonSerializer.Deserialize<List<AgendaEvento>>(System.IO.File.ReadAllText(_filePath), _jsonOptions) ?? new List<AgendaEvento>();
+
+            var evento = eventosExistentes.FirstOrDefault(e => e.Id == id);
             if (evento == null) return NotFound();
 
-            evento.Titulo = eventoAtualizado.Titulo;
-            evento.Descricao = eventoAtualizado.Descricao;
-            evento.Inicio = eventoAtualizado.Inicio.ToLocalTime();
-            evento.Fim = eventoAtualizado.Fim.ToLocalTime();
-            evento.DiaInteiro = eventoAtualizado.DiaInteiro;
+            eventosExistentes.Remove(evento);
+            System.IO.File.WriteAllText(_filePath, JsonSerializer.Serialize(eventosExistentes, _jsonOptions));
 
-            System.IO.File.WriteAllText(path, JsonSerializer.Serialize(eventos, _jsonOptions));
-            return Ok(evento);
+            return Ok(new { message = "Evento removido com sucesso" });
         }
 
-        [HttpDelete("Apagar/{id}")]
-        public IActionResult Apagar(int id)
+        // ====================== IMPORTAR ======================
+        [HttpPost("Importar")]
+        public IActionResult Importar([FromBody] List<AgendaEvento> importados)
         {
-            var path = Path.Combine(_dataPath, "agenda.json");
-            if (!System.IO.File.Exists(path)) return NotFound();
+            if (importados == null || importados.Count == 0)
+                return BadRequest("Arquivo inválido ou vazio");
 
-            var eventos = JsonSerializer.Deserialize<List<EventoAgenda>>(System.IO.File.ReadAllText(path), _jsonOptions) ?? new List<EventoAgenda>();
-            var evento = eventos.FirstOrDefault(e => e.Id == id);
-            if (evento == null) return NotFound();
+            // 1️⃣ Lê eventos existentes do arquivo
+            var eventosExistentes = System.IO.File.Exists(_filePath)
+                ? JsonSerializer.Deserialize<List<AgendaEvento>>(System.IO.File.ReadAllText(_filePath), _jsonOptions)
+                ?? new List<AgendaEvento>()
+                : new List<AgendaEvento>();
 
-            eventos.Remove(evento);
-            System.IO.File.WriteAllText(path, JsonSerializer.Serialize(eventos, _jsonOptions));
-            return Ok(new { message = "Evento removido com sucesso!" });
+            int proximoId = eventosExistentes.Count == 0 ? 1 : eventosExistentes.Max(e => e.Id) + 1;
+
+            // 2️⃣ Acrescenta apenas os eventos que ainda não existem
+            foreach (var evt in importados)
+            {
+                bool existe = eventosExistentes.Any(e => e.Titulo == evt.Titulo && e.Inicio == evt.Inicio);
+                if (!existe)
+                {
+                    evt.Id = proximoId++;
+                    eventosExistentes.Add(evt);
+                }
+            }
+
+            // 3️⃣ Salva tudo de volta no arquivo
+            System.IO.File.WriteAllText(_filePath, JsonSerializer.Serialize(eventosExistentes, _jsonOptions));
+
+            return Ok(new { message = "Eventos importados com sucesso", total = eventosExistentes.Count });
         }
     }
 }

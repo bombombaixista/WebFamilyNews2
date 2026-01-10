@@ -1,185 +1,65 @@
-﻿@model List<Kanban.Models.Produto>
+﻿<div class="mb-3 text-center">
+    <a asp-action="Create" class="btn btn-success me-2">➕ Adicionar Produto</a>
+    <a asp-action="Movimentacoes" class="btn btn-info me-2">📜 Histórico</a>
 
-<div class="container mt-4">
-    <h2 class="mb-4 text-center">📊 Dashboard de Estoque</h2>
-
-    <!-- Cards de resumo -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary shadow">
-                <div class="card-body">
-                    <h5>Total de Produtos</h5>
-                    <h3>@Model.Count</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success shadow">
-                <div class="card-body">
-                    <h5>Estoque Total</h5>
-                    <h3>@Model.Sum(p => p.Estoque)</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning shadow">
-                <div class="card-body">
-                    <h5>Valor em Estoque</h5>
-                    <h3>R$ @Model.Sum(p => p.Estoque * p.Preco)</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-danger shadow">
-                <div class="card-body">
-                    <h5>Produtos Críticos</h5>
-                    <h3>@Model.Count(p => p.Estoque < 5)</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Gráficos -->
-    <div class="row mb-4">
-        <div class="col-md-6 text-center">
-            <div style="height:200px; width:300px; margin:auto;">
-                <canvas id="graficoCategorias"></canvas>
-            </div>
-        </div>
-        <div class="col-md-6 text-center">
-            <div style="height:200px; width:300px; margin:auto;">
-                <canvas id="graficoEstoque"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Botões de ação -->
-    <div class="mb-3 text-center">
-        <a asp-action="Create" class="btn btn-success me-2">➕ Adicionar Produto</a>
-        <a asp-action="Movimentacoes" class="btn btn-info">📜 Histórico</a>
-    </div>
-
-    <!-- Filtros avançados -->
-    <div class="card shadow-sm mb-3 filtro-destaque">
-        <div class="card-body row g-2 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label">Buscar por Nome</label>
-                <input id="filtroNome" class="form-control" placeholder="Digite o nome do produto">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Categoria</label>
-                <select id="filtroCategoria" class="form-select">
-                    <option value="">Todas</option>
-                    @foreach (var cat in Model.Select(p => p.Categoria).Distinct())
-                    {
-                        <option>@cat</option>
-                    }
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Fornecedor</label>
-                <select id="filtroFornecedor" class="form-select">
-                    <option value="">Todos</option>
-                    @foreach (var forn in Model.Select(p => p.Fornecedor).Distinct())
-                    {
-                        <option>@forn</option>
-                    }
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Preço Máx.</label>
-                <input id="filtroPreco" type="number" class="form-control" placeholder="Ex: 100">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Estoque Mín.</label>
-                <input id="filtroEstoque" type="number" class="form-control" placeholder="Ex: 10">
-            </div>
-            <div class="col-md-1 d-grid gap-1">
-                <button class="btn btn-success" onclick="aplicarFiltros()">Filtrar</button>
-                <button class="btn btn-secondary" onclick="limparFiltros()">Limpar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tabela de produtos -->
-    <div class="card shadow">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0">📦 Lista de Produtos</h5>
-        </div>
-        <div class="card-body">
-            <table class="table table-hover table-bordered align-middle">
-                <thead class="table-secondary">
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>Categoria</th>
-                        <th>Fornecedor</th>
-                        <th>Marca</th>
-                        <th>Tamanho</th>
-                        <th>Cor</th>
-                        <th>Material</th>
-                        <th>Estoque</th>
-                        <th>Preço</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="produtosTabela">
-                    @foreach (var p in Model)
-                    {
-                        var estoqueClass = p.Estoque < 5 ? "table-danger" : "table-light";
-                        <tr class="@estoqueClass">
-                            <td>@p.Id</td>
-                            <td>@p.Nome</td>
-                            <td>@p.Categoria</td>
-                            <td>@p.Fornecedor</td>
-                            <td>@p.Marca</td>
-                            <td>@p.Tamanho</td>
-                            <td>@p.Cor</td>
-                            <td>@p.Material</td>
-                            <td>@p.Estoque</td>
-                            <td>R$ @p.Preco</td>
-                            <td>
-                                <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-warning btn-sm">✏️ Editar</a>
-
-                                <form asp-action="Entrada" method="post" class="d-inline ms-2">
-                                    <input type="hidden" name="id" value="@p.Id" />
-                                    <input type="number" name="quantidade" min="1" class="form-control d-inline w-25" />
-                                    <button type="submit" class="btn btn-primary btn-sm">Entrada</button>
-                                </form>
-
-                                <form asp-action="Saida" method="post" class="d-inline ms-2">
-                                    <input type="hidden" name="id" value="@p.Id" />
-                                    <input type="number" name="quantidade" min="1" class="form-control d-inline w-25" />
-                                    <button type="submit" class="btn btn-danger btn-sm">Saída</button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- CSV -->
+    <button class="btn btn-outline-primary me-2" onclick="exportarCSV()">📄 Exportar CSV</button>
+    <input type="file" id="importCSVInput" accept=".csv" style="display:none" onchange="importarCSV(event)">
+    <button class="btn btn-outline-secondary" onclick="document.getElementById('importCSVInput').click()">📥 Importar CSV</button>
 </div>
-
-@section Styles {
-    <style>
-        .filtro-destaque {
-            background: #f1f8f5;
-            border-left: 6px solid #198754;
-        }
-    </style>
-}
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // === Gráfico por categoria ===
-            const categorias = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Categoria)));
-            const countsCat = {};
-            categorias.forEach(c => { countsCat[c] = (countsCat[c] || 0) + 1; });
+        // Dados iniciais
+        let produtos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
 
-            new Chart(document.getElementById('graficoCategorias'), {
+        let graficoCategorias;
+        let graficoEstoque;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            renderizarGraficos();
+            renderTabela(produtos);
+        });
+
+        // ===== RENDERIZAÇÃO DE TABELA =====
+        function renderTabela(lista) {
+            const tbody = document.getElementById("produtosTabela");
+            tbody.innerHTML = "";
+
+            lista.forEach(p => {
+                const estoqueClass = p.Estoque < 5 ? "table-danger" : "table-light";
+                const tr = document.createElement("tr");
+                tr.className = estoqueClass;
+                tr.innerHTML = `
+                    <td>${p.Id}</td>
+                    <td>${p.Nome}</td>
+                    <td>${p.Categoria}</td>
+                    <td>${p.Fornecedor}</td>
+                    <td>${p.Marca}</td>
+                    <td>${p.Tamanho}</td>
+                    <td>${p.Cor}</td>
+                    <td>${p.Material}</td>
+                    <td>${p.Estoque}</td>
+                    <td>R$ ${p.Preco}</td>
+                    <td>
+                        <a href="/Produto/Edit/${p.Id}" class="btn btn-warning btn-sm">✏️ Editar</a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ===== RENDERIZAÇÃO DE GRÁFICOS =====
+        function renderizarGraficos() {
+            // Gráfico por categoria
+            const categorias = produtos.map(p => p.Categoria);
+            const countsCat = {};
+            categorias.forEach(c => countsCat[c] = (countsCat[c] || 0) + 1);
+
+            const ctxCat = document.getElementById('graficoCategorias').getContext('2d');
+            if (graficoCategorias) graficoCategorias.destroy();
+            graficoCategorias = new Chart(ctxCat, {
                 type: 'pie',
                 data: {
                     labels: Object.keys(countsCat),
@@ -191,11 +71,13 @@
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
-            // === Gráfico de estoque por produto ===
-            const nomes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Nome)));
-            const estoques = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Estoque)));
+            // Gráfico de estoque
+            const nomes = produtos.map(p => p.Nome);
+            const estoques = produtos.map(p => p.Estoque);
 
-            new Chart(document.getElementById('graficoEstoque'), {
+            const ctxEst = document.getElementById('graficoEstoque').getContext('2d');
+            if (graficoEstoque) graficoEstoque.destroy();
+            graficoEstoque = new Chart(ctxEst, {
                 type: 'bar',
                 data: {
                     labels: nomes,
@@ -207,9 +89,9 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false }
             });
-        });
+        }
 
-        // === Filtros avançados ===
+        // ===== FILTROS =====
         function aplicarFiltros() {
             const nome = document.getElementById("filtroNome").value.toLowerCase();
             const categoria = document.getElementById("filtroCategoria").value;
@@ -217,25 +99,17 @@
             const precoMax = parseFloat(document.getElementById("filtroPreco").value);
             const estoqueMin = parseInt(document.getElementById("filtroEstoque").value);
 
-            const linhas = document.querySelectorAll("#produtosTabela tr");
-            linhas.forEach(tr => {
-                const td = tr.querySelectorAll("td");
-                const nomeProd = td[1].innerText.toLowerCase();
-                const categoriaProd = td[2].innerText;
-                const fornecedorProd = td[3].innerText;
-                const estoqueProd = parseInt(td[8].innerText);
-                const precoTexto = td[9].innerText.replace("R$", "").replace(",", ".").trim();
-                const precoProd = parseFloat(precoTexto);
-
-                let visivel = true;
-                if (nome && !nomeProd.includes(nome)) visivel = false;
-                if (categoria && categoriaProd !== categoria) visivel = false;
-                if (fornecedor && fornecedorProd !== fornecedor) visivel = false;
-                if (!isNaN(precoMax) && precoProd > precoMax) visivel = false;
-                if (!isNaN(estoqueMin) && estoqueProd < estoqueMin) visivel = false;
-
-                tr.style.display = visivel ? "" : "none";
+            const listaFiltrada = produtos.filter(p => {
+                if (nome && !p.Nome.toLowerCase().includes(nome)) return false;
+                if (categoria && p.Categoria !== categoria) return false;
+                if (fornecedor && p.Fornecedor !== fornecedor) return false;
+                if (!isNaN(precoMax) && p.Preco > precoMax) return false;
+                if (!isNaN(estoqueMin) && p.Estoque < estoqueMin) return false;
+                return true;
             });
+
+            renderTabela(listaFiltrada);
+            renderizarGraficos();
         }
 
         function limparFiltros() {
@@ -244,7 +118,82 @@
             document.getElementById("filtroFornecedor").value = "";
             document.getElementById("filtroPreco").value = "";
             document.getElementById("filtroEstoque").value = "";
-            aplicarFiltros();
+            renderTabela(produtos);
+            renderizarGraficos();
+        }
+
+        // ===== EXPORTAR CSV =====
+        function exportarCSV() {
+            if (!produtos.length) return alert("Não há produtos para exportar.");
+
+            const linhas = [["ID","Nome","Categoria","Fornecedor","Marca","Tamanho","Cor","Material","Estoque","Preco"]];
+            produtos.forEach(p => {
+                linhas.push([
+                    p.Id,
+                    `"${p.Nome.replace(/"/g,'""')}"`,
+                    `"${p.Categoria.replace(/"/g,'""')}"`,
+                    `"${p.Fornecedor.replace(/"/g,'""')}"`,
+                    `"${p.Marca.replace(/"/g,'""')}"`,
+                    `"${p.Tamanho.replace(/"/g,'""')}"`,
+                    `"${p.Cor.replace(/"/g,'""')}"`,
+                    `"${p.Material.replace(/"/g,'""')}"`,
+                    p.Estoque,
+                    p.Preco
+                ]);
+            });
+
+            const csvContent = linhas.map(l => l.join(",")).join("\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `estoque_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ===== IMPORTAR CSV =====
+        function importarCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                const text = e.target.result;
+                const linhas = text.split(/\r?\n/).slice(1); // ignora cabeçalho
+
+                linhas.forEach(linha => {
+                    if (!linha.trim()) return;
+
+                    const cols = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(s => s.replace(/^"|"$/g,"").trim());
+                    const produto = {
+                        Id: Number(cols[0]),
+                        Nome: cols[1],
+                        Categoria: cols[2],
+                        Fornecedor: cols[3],
+                        Marca: cols[4],
+                        Tamanho: cols[5],
+                        Cor: cols[6],
+                        Material: cols[7],
+                        Estoque: Number(cols[8]),
+                        Preco: Number(cols[9])
+                    };
+
+                    // Atualiza se já existe, senão adiciona
+                    const index = produtos.findIndex(p => p.Id === produto.Id);
+                    if (index >= 0) {
+                        produtos[index] = produto;
+                    } else {
+                        produtos.push(produto);
+                    }
+                });
+
+                renderTabela(produtos);
+                renderizarGraficos();
+                alert("Importação concluída e tabela atualizada!");
+            };
+            reader.readAsText(file);
         }
     </script>
 }
