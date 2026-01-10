@@ -1,32 +1,110 @@
 ﻿@model Kanban.Models.Produto
 
-@{
-    ViewData["Title"] = "Novo Produto";
-}
+<div class="container mt-4">
+    <!-- Dashboard resumo -->
+    <h2 class="text-center mb-4">🛍️ Adicionar Novo Produto</h2>
 
-<h1>Novo Produto</h1>
-
-<form asp-action="Create" method="post">
-    <div class="mb-3">
-        <label class="form-label">Nome</label>
-        <input asp-for="Nome" class="form-control" required />
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Categorias</h5>
+                    <p class="card-text">Ex: Discos, Roupas, Acessórios</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Fornecedor</h5>
+                    <p class="card-text">Informe o fornecedor responsável</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Estoque inicial</h5>
+                    <p class="card-text">Defina a quantidade disponível</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Categoria</label>
-        <input asp-for="Categoria" class="form-control" />
-    </div>
+    <!-- Formulário -->
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">📦 Cadastro de Produto</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Nome" class="form-label fw-bold">Nome</label>
+                        <input asp-for="Nome" class="form-control border-primary" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Categoria" class="form-label fw-bold">Categoria</label>
+                        <input asp-for="Categoria" class="form-control border-success" />
+                    </div>
+                </div>
 
-    <div class="mb-3">
-        <label class="form-label">Preço</label>
-        <input asp-for="Preco" type="number" step="0.01" class="form-control" required />
-    </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Fornecedor" class="form-label fw-bold">Fornecedor</label>
+                        <input asp-for="Fornecedor" class="form-control border-warning" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Marca" class="form-label fw-bold">Marca</label>
+                        <input asp-for="Marca" class="form-control border-info" />
+                    </div>
+                </div>
 
-    <div class="mb-3">
-        <label class="form-label">Estoque</label>
-        <input asp-for="Estoque" type="number" class="form-control" required />
-    </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label asp-for="Tamanho" class="form-label fw-bold">Tamanho</label>
+                        <input asp-for="Tamanho" class="form-control border-secondary" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Cor" class="form-label fw-bold">Cor</label>
+                        <input asp-for="Cor" class="form-control border-danger" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Material" class="form-label fw-bold">Material</label>
+                        <input asp-for="Material" class="form-control border-dark" />
+                    </div>
+                </div>
 
-    <button type="submit" class="btn btn-success">Salvar</button>
-    <a class="btn btn-secondary" href="/Produto/Index">Cancelar</a>
-</form>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="CodigoBarras" class="form-label fw-bold">Código de Barras</label>
+                        <input asp-for="CodigoBarras" class="form-control border-primary" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DataLancamento" class="form-label fw-bold">Data de Lançamento</label>
+                        <input asp-for="DataLancamento" class="form-control border-success" type="date" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Descricao" class="form-label fw-bold">Descrição</label>
+                    <textarea asp-for="Descricao" class="form-control border-info"></textarea>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Estoque" class="form-label fw-bold">Estoque Inicial</label>
+                        <input asp-for="Estoque" class="form-control border-warning" type="number" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Preco" class="form-label fw-bold">Preço</label>
+                        <input asp-for="Preco" class="form-control border-danger" type="number" step="0.01" />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success">Salvar Produto</button>
+                <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+            </form>
+        </div>
+    </div>
+</div>

@@ -4,58 +4,88 @@
 
 <div class="container mt-4">
 
-    <!-- HEADER / DASHBOARD -->
+    <!-- HEADER -->
     <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body text-white"
-             style="background: linear-gradient(135deg,#6f42c1,#0d6efd);">
-            <h4 class="mb-1">💾 Backup do Sistema</h4>
-            <small>
-                Exporte ou restaure todos os dados do sistema com segurança
-            </small>
+        <div class="card-body text-white" style="background: linear-gradient(135deg,#0d6efd,#6f42c1);">
+            <h3 class="mb-1">💾 Backup do Sistema</h3>
+            <small>Mantenha seus dados seguros com exportação, importação e relatórios PDF</small>
         </div>
     </div>
 
-    <!-- CARD BACKUP -->
+    <!-- CARD PRINCIPAL -->
     <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8 col-12">
+        <div class="col-lg-7 col-md-9 col-12">
 
             <div class="card shadow-lg border-0">
                 <div class="card-body text-center p-4">
 
-                    <p class="text-muted mb-4">
-                        Utilize as opções abaixo para manter seus dados protegidos.
-                        Recomendamos realizar backups periódicos.
+                    <p class="text-muted mb-4 fs-5">
+                        Escolha abaixo a operação desejada para proteger seus dados ou gerar relatórios.
                     </p>
 
-                    <!-- BOTÕES -->
-                    <div class="d-grid gap-3">
-
-                        <!-- EXPORTAR -->
-                        <button class="btn btn-success btn-lg"
-                                onclick="exportarTudo()">
+                    <!-- BOTÕES BACKUP -->
+                    <div class="d-grid gap-3 mb-4">
+                        <button type="button" class="btn btn-success btn-lg fw-bold" onclick="exportarTudo()">
                             📤 Exportar Backup Completo
                         </button>
 
-                        <!-- IMPORTAR -->
-                        <button class="btn btn-danger btn-lg"
-                                onclick="document.getElementById('arquivoZip').click()">
-                            📥 Importar Backup (ZIP)
+                        <button type="button" class="btn btn-danger btn-lg fw-bold"
+                                onclick="document.getElementById('arquivoZipTotal').click()">
+                            📥 Importar Tudo (sobrescrever)
                         </button>
+                        <input type="file" id="arquivoZipTotal" accept=".zip" hidden onchange="importarTudo(event)" />
 
-                        <input type="file"
-                               id="arquivoZip"
-                               accept=".zip"
-                               hidden
-                               onchange="importarTudo(event)" />
+                        <button type="button" class="btn btn-primary btn-lg fw-bold"
+                                onclick="document.getElementById('arquivoJson').click()">
+                            📥 Importar Arquivo
+                        </button>
+                        <input type="file" id="arquivoJson" accept=".json" hidden onchange="importarArquivo(event)" />
+                    </div>
+
+                    <!-- EXPORTAR ARQUIVO ESPECÍFICO -->
+                    <div class="text-start mt-4">
+                        <label for="selectArquivo" class="form-label fw-bold">📂 Escolher arquivo para exportar</label>
+                        <div class="input-group">
+                            <select id="selectArquivo" class="form-select">
+                                <option value="">Selecione um arquivo...</option>
+                            </select>
+                            <button type="button"
+                                    class="btn btn-outline-info fw-bold"
+                                    onclick="exportarSelecionado()">
+                                Exportar
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            Os arquivos listados são da pasta <code>Data</code>.
+                        </small>
+                    </div>
+
+                    <!-- BOTÕES PDF (ÚNICA CORREÇÃO AQUI) -->
+                    <div class="d-flex flex-wrap gap-2 mt-4 mb-3 justify-content-center">
+
+                        <a asp-controller="Relatorio"
+                           asp-action="Financeiro"
+                           target="_blank"
+                           class="btn btn-danger">
+                            📄 PDF Financeiro
+                        </a>
+
+                        <a asp-controller="RelatorioProdutoEstoque"
+                           asp-action="Executivo"
+                           target="_blank"
+                           class="btn btn-success">
+                            📦 PDF Produto / Estoque
+                        </a>
+
                     </div>
 
                     <!-- ALERTA -->
                     <div class="alert alert-warning mt-4 text-start">
-                        <strong>⚠ Atenção:</strong>
+                        <h6 class="fw-bold">⚠ Atenção:</h6>
                         <ul class="mb-0 ps-3">
-                            <li>Importar um backup pode substituir dados atuais.</li>
-                            <li>Certifique-se de usar um arquivo válido.</li>
-                            <li>Faça um backup antes de restaurar.</li>
+                            <li>Importar um backup total substituirá todos os dados existentes.</li>
+                            <li>Importar um arquivo mescla com os dados existentes.</li>
+                            <li>Relatórios PDF não alteram dados.</li>
                         </ul>
                     </div>
 
@@ -68,6 +98,8 @@
 
 @section Scripts {
     <script>
+        document.addEventListener('DOMContentLoaded', carregarArquivos);
+
         function exportarTudo() {
             window.location.href = '/Backup/ExportarTudo';
         }
@@ -76,29 +108,60 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            if (!confirm("⚠ Tem certeza que deseja importar este backup? Os dados atuais poderão ser substituídos.")) {
-                event.target.value = "";
-                return;
-            }
+            const formData = new FormData();
+            formData.append("arquivo", file);
+
+            await fetch('/Backup/ImportarTudo', {
+                method: 'POST',
+                body: formData
+            });
+
+            alert("✅ Backup total importado com sucesso!");
+            location.reload();
+        }
+
+        async function importarArquivo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
             const formData = new FormData();
             formData.append("arquivo", file);
 
-            try {
-                const resp = await fetch('/Backup/ImportarTudo', {
-                    method: 'POST',
-                    body: formData
-                });
+            await fetch('/Backup/ImportarArquivo', {
+                method: 'POST',
+                body: formData
+            });
 
-                if (resp.ok) {
-                    alert("✅ Importação concluída com sucesso!");
-                    location.reload();
-                } else {
-                    alert("❌ Falha ao importar o backup.");
-                }
-            } catch (err) {
-                alert("❌ Erro inesperado durante a importação.");
+            alert("✅ Arquivo importado com sucesso!");
+            location.reload();
+        }
+
+        async function carregarArquivos() {
+            const resp = await fetch('/Backup/ListarArquivos');
+            if (!resp.ok) return;
+
+            const arquivos = await resp.json();
+            const select = document.getElementById('selectArquivo');
+
+            select.innerHTML = '<option value="">Selecione um arquivo...</option>';
+
+            arquivos.forEach(nome => {
+                const opt = document.createElement('option');
+                opt.value = nome;
+                opt.textContent = nome;
+                select.appendChild(opt);
+            });
+        }
+
+        function exportarSelecionado() {
+            const nome = document.getElementById('selectArquivo').value;
+            if (!nome) {
+                alert("Selecione um arquivo.");
+                return;
             }
+
+            window.location.href =
+                '/Backup/ExportarArquivo?nomeArquivo=' + encodeURIComponent(nome);
         }
     </script>
 }

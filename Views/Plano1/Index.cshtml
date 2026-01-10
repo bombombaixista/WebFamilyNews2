@@ -1,0 +1,153 @@
+﻿<section class="planos py-5" style="background:#f8f9fa;">
+    <div class="container">
+        <h2 class="text-center mb-5">Escolha o Plano do WebFamily</h2>
+        <div class="row g-4 justify-content-center">
+
+            <!-- BÁSICO -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100 plano-card">
+                    <div class="card-header text-center bg-success text-white">
+                        <h4>Básico</h4>
+                        <small>Ideal para pequenas equipes</small>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-4">
+                            <li>✅ Pipeline de Vendas</li>
+                            <li>✅ Cadastro de Clientes</li>
+                            <li>✅ Agenda / Calendário</li>
+                            <li>✅ Relatórios básicos</li>
+                            <li>❌ Controle de Estoque e Produtos</li>
+                            <li>❌ Cadastro de Fornecedores</li>
+                            <li>❌ Controle Financeiro</li>
+                            <li>❌ Dashboards avançados</li>
+                        </ul>
+                        <h3 class="text-center mb-3">R$149 / mês</h3>
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-success btn-lg">Teste grátis 14 dias</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROFISSIONAL (destaque popular) -->
+            <div class="col-md-4">
+                <div class="card shadow-lg border-0 h-100 plano-card popular">
+                    <div class="ribbon">Mais Popular</div>
+                    <div class="card-header text-center bg-primary text-white">
+                        <h4>Profissional</h4>
+                        <small>Para equipes em crescimento</small>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-4">
+                            <li>✅ Pipeline de Vendas</li>
+                            <li>✅ Cadastro de Clientes</li>
+                            <li>✅ Agenda / Calendário</li>
+                            <li>✅ Organizador de Tarefas</li>
+                            <li>✅ Controle de Estoque e Produtos</li>
+                            <li>✅ Cadastro de Fornecedores</li>
+                            <li>✅ Controle Financeiro</li>
+                            <li>✅ Relatórios avançados</li>
+                            <li>✅ Dashboards e filtros avançados</li>
+                        </ul>
+                        <h3 class="text-center mb-3">R$299 / mês</h3>
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-primary btn-lg">Teste grátis 14 dias</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PREMIUM -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100 plano-card">
+                    <div class="card-header text-center bg-warning text-dark">
+                        <h4>Premium</h4>
+                        <small>O pacote completo para empresas</small>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-4">
+                            <li>✅ Pipeline de Vendas</li>
+                            <li>✅ Cadastro de Clientes</li>
+                            <li>✅ Agenda / Calendário</li>
+                            <li>✅ Organizador de Tarefas</li>
+                            <li>✅ Controle de Estoque e Produtos</li>
+                            <li>✅ Cadastro de Fornecedores</li>
+                            <li>✅ Controle Financeiro completo</li>
+                            <li>✅ Relatórios personalizados</li>
+                            <li>✅ Dashboards e filtros avançados</li>
+                            <li>✅ Suporte prioritário</li>
+                            <li>✅ Backups automáticos</li>
+                        </ul>
+                        <h3 class="text-center mb-3">R$499 / mês</h3>
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-warning text-dark btn-lg">Teste grátis 14 dias</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<style>
+    .planos h2 {
+        font-weight: 700;
+    }
+
+    .plano-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .plano-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .plano-card ul li {
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+    /* Ribbon destaque */
+    .ribbon {
+        width: 140px;
+        height: 32px;
+        background: #ffc107;
+        color: #212529;
+        font-weight: 600;
+        text-align: center;
+        line-height: 32px;
+        position: absolute;
+        top: -16px;
+        left: 50%;
+        transform: translateX(-50%) rotate(-10deg);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        z-index: 10;
+        border-radius: 4px;
+    }
+
+    .popular {
+        border: 2px solid #0d6efd;
+    }
+
+    .plano-card .card-header h4 {
+        margin-bottom: 0.25rem;
+    }
+
+    .plano-card .card-header small {
+        font-size: 0.85rem;
+    }
+
+    .plano-card h3 {
+        font-weight: 700;
+    }
+
+    .plano-card .btn-lg {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+</style>

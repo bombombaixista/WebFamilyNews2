@@ -1,0 +1,151 @@
+﻿@model List<Kanban.Models.Movimentacao>
+@using Kanban.Models
+
+@{
+    var produtos = ViewBag.Produtos as List<Produto>;
+    int totalMovs = Model.Count;
+    int entradas = Model.Count(m => m.Tipo == "Entrada");
+    int saidas = Model.Count(m => m.Tipo == "Saída");
+    int quantidadeTotal = Model.Sum(m => m.Quantidade);
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">📜 Dashboard de Movimentações</h2>
+
+    <!-- Cards de resumo -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary shadow">
+                <div class="card-body">
+                    <h5>Total de Movimentações</h5>
+                    <h3>@totalMovs</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success shadow">
+                <div class="card-body">
+                    <h5>Entradas</h5>
+                    <h3>@entradas</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger shadow">
+                <div class="card-body">
+                    <h5>Saídas</h5>
+                    <h3>@saidas</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning shadow">
+                <div class="card-body">
+                    <h5>Quantidade Movimentada</h5>
+                    <h3>@quantidadeTotal</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-4">
+        <div class="col-md-6 text-center">
+            <div style="height:200px; width:300px; margin:auto;">
+                <canvas id="graficoTipos"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6 text-center">
+            <div style="height:200px; width:300px; margin:auto;">
+                <canvas id="graficoProdutos"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão voltar -->
+    <div class="mb-3 text-center">
+        <a asp-action="Index" class="btn btn-secondary">← Voltar ao Estoque</a>
+    </div>
+
+    <!-- Tabela de movimentações -->
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">📦 Histórico de Movimentações</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover table-bordered align-middle">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>ID</th>
+                        <th>Produto</th>
+                        <th>Tipo</th>
+                        <th>Quantidade</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Model)
+                    {
+                        var produtoNome = produtos?.FirstOrDefault(p => p.Id == m.ProdutoId)?.Nome ?? $"ID {m.ProdutoId}";
+                        var rowClass = m.Tipo == "Entrada" ? "table-success" : "table-danger";
+                        <tr class="@rowClass">
+                            <td>@m.Id</td>
+                            <td>@produtoNome</td>
+                            <td>
+                                @if (m.Tipo == "Entrada")
+                                {
+                                    <span class="text-success fw-bold">Entrada</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger fw-bold">Saída</span>
+                                }
+                            </td>
+                            <td>@m.Quantidade</td>
+                            <td>@m.Data.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // === Gráfico Entradas vs Saídas ===
+            new Chart(document.getElementById('graficoTipos'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Entradas', 'Saídas'],
+                    datasets: [{
+                        data: [@entradas, @saidas],
+                        backgroundColor: ['#28a745','#dc3545']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // === Gráfico Quantidade por Produto ===
+            const nomes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                                                    Model.Select(m => produtos?.FirstOrDefault(p => p.Id == m.ProdutoId)?.Nome ?? $"ID {m.ProdutoId}")
+                                    ));
+    const quantidades = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(m => m.Quantidade)));
+
+            new Chart(document.getElementById('graficoProdutos'), {
+                type: 'bar',
+                data: {
+                    labels: nomes,
+                    datasets: [{
+                        label: 'Qtd Movimentada',
+                        data: quantidades,
+                        backgroundColor: '#17a2b8'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        });
+    </script>
+}

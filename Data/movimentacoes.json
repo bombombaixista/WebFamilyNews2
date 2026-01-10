@@ -1,0 +1,272 @@
+[
+  {
+    "Id": 1,
+    "ProdutoId": 1,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Entrada",
+    "Categoria": "",
+    "Data": "2026-01-04T02:28:45.2674035-03:00"
+  },
+  {
+    "Id": 2,
+    "ProdutoId": 1,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-04T02:28:47.9476035-03:00"
+  },
+  {
+    "Id": 3,
+    "ProdutoId": 1,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Entrada",
+    "Categoria": "",
+    "Data": "2026-01-04T02:29:15.1632967-03:00"
+  },
+  {
+    "Id": 4,
+    "ProdutoId": 1,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-04T02:29:17.2198173-03:00"
+  },
+  {
+    "Id": 5,
+    "ProdutoId": 1,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Entrada",
+    "Categoria": "",
+    "Data": "2026-01-04T02:29:34.1162653-03:00"
+  },
+  {
+    "Id": 6,
+    "ProdutoId": 1,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-04T02:29:35.701954-03:00"
+  },
+  {
+    "Id": 7,
+    "ProdutoId": 1,
+    "Quantidade": 1,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-04T02:29:42.1063049-03:00"
+  },
+  {
+    "Id": 8,
+    "ProdutoId": 1,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Entrada",
+    "Categoria": "",
+    "Data": "2026-01-04T02:29:46.1845809-03:00"
+  },
+  {
+    "Id": 9,
+    "ProdutoId": 1,
+    "Quantidade": 5,
+    "Valor": 0,
+    "Tipo": "Entrada",
+    "Categoria": "",
+    "Data": "2026-01-04T02:29:51.0179063-03:00"
+  },
+  {
+    "Id": 10,
+    "ProdutoId": 1,
+    "Quantidade": 1,
+    "Valor": 0,
+    "Tipo": "Entrada",
+    "Categoria": "",
+    "Data": "2026-01-04T02:29:57.9865675-03:00"
+  },
+  {
+    "Id": 11,
+    "ProdutoId": 1,
+    "Quantidade": 13,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-08T00:22:24.3206711-03:00"
+  },
+  {
+    "Id": 12,
+    "ProdutoId": 0,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-08T00:32:53.8739825-03:00"
+  },
+  {
+    "Id": 13,
+    "ProdutoId": 0,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-08T00:33:00.2001061-03:00"
+  },
+  {
+    "Id": 14,
+    "ProdutoId": 0,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-08T00:33:11.4897965-03:00"
+  },
+  {
+    "Id": 15,
+    "ProdutoId": 0,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-08T14:44:32.7629487-03:00"
+  },
+  {
+    "Id": 16,
+    "ProdutoId": 3,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-08T14:44:42.926938-03:00"
+  },
+  {
+    "Id": 17,
+    "ProdutoId": 1,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-08T14:45:12.1154276-03:00"
+  },
+  {
+    "Id": 18,
+    "ProdutoId": 4,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-08T18:34:13.596454-03:00"
+  },
+  {
+    "Id": 19,
+    "ProdutoId": 4,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-08T18:34:26.6946052-03:00"
+  },
+  {
+    "Id": 20,
+    "ProdutoId": 4,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-08T18:34:43.3094865-03:00"
+  },
+  {
+    "Id": 21,
+    "ProdutoId": 4,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Entrada",
+    "Categoria": "",
+    "Data": "2026-01-08T18:34:53.6479811-03:00"
+  },
+  {
+    "Id": 22,
+    "ProdutoId": 0,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-09T08:22:11.8008841-03:00"
+  },
+  {
+    "Id": 23,
+    "ProdutoId": 0,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-09T08:22:20.1534196-03:00"
+  },
+  {
+    "Id": 24,
+    "ProdutoId": 0,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Entrada",
+    "Categoria": "",
+    "Data": "2026-01-09T08:22:32.3505074-03:00"
+  },
+  {
+    "Id": 25,
+    "ProdutoId": 1,
+    "Quantidade": 0,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-09T08:23:22.1973722-03:00"
+  },
+  {
+    "Id": 26,
+    "ProdutoId": 0,
+    "Quantidade": 1,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-09T09:09:42.8532103-03:00"
+  },
+  {
+    "Id": 27,
+    "ProdutoId": 0,
+    "Quantidade": 3,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-09T09:10:01.1466083-03:00"
+  },
+  {
+    "Id": 28,
+    "ProdutoId": 0,
+    "Quantidade": 5,
+    "Valor": 0,
+    "Tipo": "Entrada",
+    "Categoria": "",
+    "Data": "2026-01-09T09:10:19.7468437-03:00"
+  },
+  {
+    "Id": 29,
+    "ProdutoId": 0,
+    "Quantidade": 5,
+    "Valor": 0,
+    "Tipo": "Entrada",
+    "Categoria": "",
+    "Data": "2026-01-09T09:15:53.8680207-03:00"
+  },
+  {
+    "Id": 30,
+    "ProdutoId": 0,
+    "Quantidade": 1,
+    "Valor": 0,
+    "Tipo": "Sa\u00EDda",
+    "Categoria": "",
+    "Data": "2026-01-09T09:16:06.6814009-03:00"
+  }
+]

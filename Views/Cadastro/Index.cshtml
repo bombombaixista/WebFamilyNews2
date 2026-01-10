@@ -2,8 +2,8 @@
     ViewData["Title"] = "Cadastro";
 }
 
-<div class="container d-flex justify-content-center align-items-center"
-     style="min-height:85vh;">
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">📊 Cadastro de Clientes</h2>
     <div class="card shadow-lg border-0 w-100"
          style="max-width:420px;">
 
@@ -17,7 +17,7 @@
         <!-- BODY -->
         <div class="card-body p-4">
 
-            <form asp-action="Register" method="post">
+            <form asp-action="Register" method="post" id="formCadastro">
                 @Html.AntiForgeryToken()
 
                 <div class="mb-3">
@@ -38,35 +38,33 @@
                            required />
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-3 position-relative">
                     <label class="form-label">Senha</label>
                     <input type="password"
                            name="senha"
                            class="form-control"
                            placeholder="••••••••"
-                           required />
+                           required
+                           id="senhaInput" />
+                    <button type="button" class="btn btn-sm btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
+                            id="toggleSenha">
+                        👁️
+                    </button>
                 </div>
 
                 <div class="d-grid mt-4">
                     <button type="submit"
-                            class="btn btn-success btn-lg">
+                            class="btn btn-success btn-lg"
+                            id="btnCadastrar">
                         🚀 Cadastrar
                     </button>
                 </div>
             </form>
 
             <!-- ERROS -->
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="alert alert-danger mt-3 mb-0">
-                    <ul class="mb-0 ps-3">
-                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                        {
-                            <li>@error.ErrorMessage</li>
-                        }
-                    </ul>
-                </div>
-            }
+            <div id="erroContainer" class="alert alert-danger mt-3 mb-0 d-none">
+                <ul class="mb-0 ps-3" id="erroList"></ul>
+            </div>
         </div>
 
         <!-- FOOTER -->
@@ -88,5 +86,74 @@
             border-color: #198754;
             box-shadow: 0 0 0 .15rem rgba(25,135,84,.25);
         }
+
+        #toggleSenha {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+            #toggleSenha:hover {
+                color: #198754;
+            }
+
+        .btn-lg {
+            box-shadow: 0 4px 12px rgba(25,135,84,0.45);
+        }
+
+        #erroContainer {
+            transition: all 0.3s ease;
+        }
     </style>
+}
+
+@section Scripts {
+    <script>
+        // Toggle mostrar/ocultar senha
+        const senhaInput = document.getElementById("senhaInput");
+        const toggleSenha = document.getElementById("toggleSenha");
+
+        toggleSenha.addEventListener("click", () => {
+            if (senhaInput.type === "password") {
+                senhaInput.type = "text";
+                toggleSenha.textContent = "🙈";
+            } else {
+                senhaInput.type = "password";
+                toggleSenha.textContent = "👁️";
+            }
+        });
+
+        // Validação antes do submit
+        const form = document.getElementById("formCadastro");
+        const btnCadastrar = document.getElementById("btnCadastrar");
+        const erroContainer = document.getElementById("erroContainer");
+        const erroList = document.getElementById("erroList");
+
+        form.addEventListener("submit", (e) => {
+            erroList.innerHTML = "";
+            erroContainer.classList.add("d-none");
+
+            const nome = form.nome.value.trim();
+            const email = form.email.value.trim();
+            const senha = form.senha.value.trim();
+            const erros = [];
+
+            if (!nome) erros.push("O campo Nome é obrigatório.");
+            if (!email) erros.push("O campo Email é obrigatório.");
+            if (!senha) erros.push("O campo Senha é obrigatório.");
+            if (senha && senha.length < 6) erros.push("A senha deve ter pelo menos 6 caracteres.");
+
+            if (erros.length) {
+                e.preventDefault();
+                erros.forEach(err => {
+                    const li = document.createElement("li");
+                    li.textContent = err;
+                    erroList.appendChild(li);
+                });
+                erroContainer.classList.remove("d-none");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+    </script>
 }

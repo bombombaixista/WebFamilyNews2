@@ -1,0 +1,125 @@
+﻿@{
+    ViewData["Title"] = "Planos WebFamily";
+}
+
+<div class="container py-5">
+
+    <!-- HEADER -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Planos WebFamily</h1>
+        <p class="text-muted fs-5">
+            Um sistema completo para organizar, vender e crescer
+        </p>
+    </div>
+
+    <!-- PLANOS -->
+    <div class="row g-4 justify-content-center">
+
+        <!-- FREE -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold">Free</h5>
+                    <p class="text-muted">Teste grátis</p>
+
+                    <h2 class="my-3">R$ 0</h2>
+                    <p class="text-muted">por 7 dias</p>
+
+                    <ul class="list-unstyled text-start small">
+                        <li>✔ Todos os módulos</li>
+                        <li>✔ 1 usuário</li>
+                        <li>✔ Dashboards</li>
+                        <li>✖ Após 7 dias bloqueia</li>
+                    </ul>
+
+                    <a asp-action="Register" asp-controller="Auth"
+                       class="btn btn-outline-primary w-100 mt-3">
+                        Testar grátis
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- BASICO -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold">Básico</h5>
+                    <p class="text-muted">Pequenos negócios</p>
+
+                    <h2 class="my-3">R$ 29</h2>
+                    <p class="text-muted">/mês</p>
+
+                    <ul class="list-unstyled text-start small">
+                        <li>✔ CRM & Clientes</li>
+                        <li>✔ Agenda</li>
+                        <li>✔ Financeiro simples</li>
+                        <li>✔ 1 usuário</li>
+                    </ul>
+
+                    <a asp-action="Register" asp-controller="Auth"
+                       class="btn btn-outline-success w-100 mt-3">
+                        Assinar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFISSIONAL -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-lg border-success position-relative">
+                <div class="position-absolute top-0 start-50 translate-middle badge bg-success px-3 py-2">
+                    MAIS VENDIDO
+                </div>
+
+                <div class="card-body text-center">
+                    <h5 class="fw-bold text-success">Profissional</h5>
+                    <p class="text-muted">Completo</p>
+
+                    <h2 class="my-3 text-success">R$ 59</h2>
+                    <p class="text-muted">/mês</p>
+
+                    <ul class="list-unstyled text-start small">
+                        <li>✔ Todos os módulos</li>
+                        <li>✔ Pipeline de vendas</li>
+                        <li>✔ Estoque e produtos</li>
+                        <li>✔ Financeiro completo</li>
+                        <li>✔ Relatórios avançados</li>
+                        <li>✔ Até 3 usuários</li>
+                    </ul>
+
+                    <a asp-action="Register" asp-controller="Auth"
+                       class="btn btn-success w-100 mt-3">
+                        Começar agora
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- EMPRESA -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold">Empresa</h5>
+                    <p class="text-muted">Sob medida</p>
+
+                    <h2 class="my-3">Sob consulta</h2>
+
+                    <ul class="list-unstyled text-start small">
+                        <li>✔ Usuários ilimitados</li>
+                        <li>✔ Permissões avançadas</li>
+                        <li>✔ Suporte prioritário</li>
+                        <li>✔ Customizações</li>
+                    </ul>
+
+                    <a href="https://wa.me/5500000000000"
+                       target="_blank"
+                       class="btn btn-outline-dark w-100 mt-3">
+                        Falar com vendas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -2,136 +2,151 @@
     ViewData["Title"] = "Gestão de Fornecedores";
 }
 
-<!-- DASHBOARD TOPO -->
+<h2 class="mb-4">🏭 Gestão de Fornecedores</h2>
+
+<!-- DASHBOARD -->
 <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm border-0 text-white"
-             style="background: linear-gradient(135deg,#4e73df,#224abe);">
-            <div class="card-body">
+    <div class="col-md-3">
+        <div class="card text-white shadow-sm" style="background:#4e73df">
+            <div class="card-body text-center">
                 <div class="small">Fornecedores</div>
                 <h4 id="dashTotal">0</h4>
             </div>
         </div>
     </div>
-
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm border-0 text-white"
-             style="background: linear-gradient(135deg,#1cc88a,#17a673);">
-            <div class="card-body">
+    <div class="col-md-3">
+        <div class="card text-white shadow-sm" style="background:#1cc88a">
+            <div class="card-body text-center">
                 <div class="small">Empresas</div>
                 <h4 id="dashEmpresas">0</h4>
             </div>
         </div>
     </div>
-
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm border-0 text-white"
-             style="background: linear-gradient(135deg,#36b9cc,#2c9faf);">
-            <div class="card-body">
+    <div class="col-md-3">
+        <div class="card text-white shadow-sm" style="background:#36b9cc">
+            <div class="card-body text-center">
                 <div class="small">Produtos</div>
                 <h4 id="dashProdutos">0</h4>
             </div>
         </div>
     </div>
-
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm border-0 text-white"
-             style="background: linear-gradient(135deg,#f6c23e,#dda20a);">
-            <div class="card-body">
+    <div class="col-md-3">
+        <div class="card text-white shadow-sm" style="background:#f6c23e">
+            <div class="card-body text-center">
                 <div class="small">Ativos</div>
-                <h4 id="dashAtivos">100%</h4>
+                <h4>100%</h4>
             </div>
         </div>
     </div>
 </div>
 
-<!-- HEADER -->
-<div class="card shadow-sm mb-3 border-0">
-    <div class="card-body d-flex justify-content-between align-items-center flex-wrap"
-         style="background: linear-gradient(135deg,#4e73df,#1cc88a); color:white;">
-        <h5 class="mb-2 mb-md-0">🏭 Gestão de Fornecedores</h5>
-
-        <button class="btn btn-light fw-bold text-primary"
-                onclick="abrirModalNovo()">
-            ➕ Novo Fornecedor
-        </button>
+<!-- GRÁFICOS -->
+<div class="row mb-4 text-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm p-2">
+            <small class="fw-bold">Por Empresa</small>
+            <div class="grafico-box">
+                <canvas id="graficoEmpresa"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm p-2">
+            <small class="fw-bold">Por Produto</small>
+            <div class="grafico-box">
+                <canvas id="graficoProduto"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm p-2">
+            <small class="fw-bold">Distribuição</small>
+            <div class="grafico-box">
+                <canvas id="graficoBarra"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- TABELA RESPONSIVA -->
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead style="background:#f8f9fc;">
-                    <tr class="text-secondary">
-                        <th>#</th>
-                        <th>Nome</th>
-                        <th class="d-none d-md-table-cell">Empresa</th>
-                        <th class="d-none d-md-table-cell">Telefone</th>
-                        <th class="d-none d-md-table-cell">Email</th>
-                        <th>Produto</th>
-                        <th class="text-center">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="fornecedores"></tbody>
-            </table>
+<!-- FILTROS -->
+<div class="card shadow-sm mb-3 filtro-destaque">
+    <div class="card-body row g-2 align-items-end">
+        <div class="col-md-4">
+            <label>Buscar</label>
+            <input id="filtroBusca" class="form-control" placeholder="Nome, empresa, produto">
+        </div>
+        <div class="col-md-3">
+            <label>Empresa</label>
+            <select id="filtroEmpresa" class="form-select"></select>
+        </div>
+        <div class="col-md-3">
+            <label>Produto</label>
+            <select id="filtroProduto" class="form-select"></select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button class="btn btn-success" onclick="aplicarFiltros()">Filtrar</button>
+            <button class="btn btn-secondary mt-1" onclick="limparFiltros()">Limpar</button>
         </div>
     </div>
+</div>
+
+<!-- AÇÃO -->
+<div class="mb-3 text-end">
+    <button class="btn btn-primary" onclick="abrirModalNovo()">➕ Novo Fornecedor</button>
+</div>
+
+<!-- TABELA -->
+<div class="card shadow-sm">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Nome</th>
+                <th>Empresa</th>
+                <th>Telefone</th>
+                <th>Email</th>
+                <th>Produto</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="fornecedores"></tbody>
+    </table>
 </div>
 
 <!-- MODAL -->
-<div class="modal fade" id="modalFornecedor" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+<div class="modal fade" id="modalFornecedor">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header"
-                 style="background: linear-gradient(135deg,#36b9cc,#1cc88a); color:white;">
-                <h5 class="modal-title" id="modalTitulo">Fornecedor</h5>
-                <button class="btn-close btn-close-white"
-                        data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5>Fornecedor</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-
-            <div class="modal-body">
+            <div class="modal-body row g-3">
                 <input type="hidden" id="fornecedorId">
-
-                <div class="row g-3">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">Nome</label>
-                        <input type="text" id="nome" class="form-control">
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">Empresa</label>
-                        <input type="text" id="empresa" class="form-control">
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">Telefone</label>
-                        <input type="text" id="telefone" class="form-control">
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">Email</label>
-                        <input type="email" id="email" class="form-control">
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">Produto / Serviço</label>
-                        <input type="text" id="produto" class="form-control">
-                    </div>
+                <div class="col-md-6">
+                    <label>Nome</label>
+                    <input id="nome" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label>Empresa</label>
+                    <input id="empresa" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label>Telefone</label>
+                    <input id="telefone" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label>Email</label>
+                    <input id="email" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label>Produto</label>
+                    <input id="produto" class="form-control">
                 </div>
             </div>
-
             <div class="modal-footer">
-                <button class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-                    Cancelar
-                </button>
-
-                <button class="btn btn-success"
-                        onclick="salvarFornecedor()">
-                    💾 Salvar
-                </button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-success" onclick="salvarFornecedor()">Salvar</button>
             </div>
         </div>
     </div>
@@ -139,115 +154,161 @@
 
 @section Styles {
     <style>
-        .form-control:focus {
-            border-color: #1cc88a;
-            box-shadow: 0 0 0 .15rem rgba(28,200,138,.25);
+        .grafico-box {
+            width: 200px;
+            height: 160px;
+            margin: auto;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .filtro-destaque {
+            background: #f1f8f5;
+            border-left: 6px solid #198754;
         }
     </style>
 }
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let modal;
-        let cacheFornecedores = [];
+        let cache = [];
+        let lista = [];
+        let gEmpresa, gProduto, gBarra;
 
-        document.addEventListener("DOMContentLoaded", () => {
-            modal = new bootstrap.Modal(document.getElementById("modalFornecedor"));
-            carregarFornecedores();
+        document.addEventListener("DOMContentLoaded", async () => {
+            modal = new bootstrap.Modal(modalFornecedor);
+            await carregarFornecedores();
         });
 
         async function carregarFornecedores() {
-            const resp = await fetch('/Fornecedor/Listar');
-            cacheFornecedores = await resp.json();
-
+            const r = await fetch('/Fornecedor/Listar');
+            cache = await r.json();
+            lista = [...cache];
+            popularSelects();
             atualizarDashboard();
             renderTabela();
+            atualizarGraficos();
+        }
+
+        function popularSelects() {
+            filtroEmpresa.innerHTML = `<option value="">Todas</option>` +
+                [...new Set(cache.map(f => f.empresa))].map(e => `<option>${e}</option>`).join("");
+            filtroProduto.innerHTML = `<option value="">Todos</option>` +
+                [...new Set(cache.map(f => f.produto))].map(p => `<option>${p}</option>`).join("");
         }
 
         function atualizarDashboard() {
-            document.getElementById("dashTotal").innerText = cacheFornecedores.length;
-
-            document.getElementById("dashEmpresas").innerText =
-                new Set(cacheFornecedores.map(f => f.empresa)).size;
-
-            document.getElementById("dashProdutos").innerText =
-                new Set(cacheFornecedores.map(f => f.produto)).size;
+            dashTotal.innerText = lista.length;
+            dashEmpresas.innerText = new Set(lista.map(f => f.empresa)).size;
+            dashProdutos.innerText = new Set(lista.map(f => f.produto)).size;
         }
 
         function renderTabela() {
-            const tbody = document.getElementById("fornecedores");
-            tbody.innerHTML = "";
-
-            cacheFornecedores.forEach(f => {
-                tbody.innerHTML += `
+            fornecedores.innerHTML = "";
+            lista.forEach(f => {
+                fornecedores.innerHTML += `
                 <tr>
                     <td>${f.id}</td>
                     <td>${f.nome}</td>
-                    <td class="d-none d-md-table-cell">${f.empresa}</td>
-                    <td class="d-none d-md-table-cell">${f.telefone}</td>
-                    <td class="d-none d-md-table-cell">${f.email}</td>
-                    <td>
-                        <span class="badge bg-info text-dark">${f.produto}</span>
-                    </td>
+                    <td>${f.empresa}</td>
+                    <td>${f.telefone || "-"}</td>
+                    <td>${f.email || "-"}</td>
+                    <td><span class="badge bg-info">${f.produto}</span></td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-warning text-white me-1"
-                                onclick="abrirModalEditar(${f.id})">✏️</button>
-                        <button class="btn btn-sm btn-danger"
-                                onclick="apagarFornecedor(${f.id})">🗑️</button>
+                        <button class="btn btn-sm btn-warning text-white" onclick="abrirModalEditar(${f.id})">✏️</button>
+                        <button class="btn btn-sm btn-danger" onclick="apagarFornecedor(${f.id})">🗑️</button>
                     </td>
                 </tr>`;
             });
         }
 
+        function atualizarGraficos() {
+            if (gEmpresa) gEmpresa.destroy();
+            if (gProduto) gProduto.destroy();
+            if (gBarra) gBarra.destroy();
+
+            const empresas = [...new Set(lista.map(f => f.empresa))];
+            const prod = [...new Set(lista.map(f => f.produto))];
+
+            gEmpresa = new Chart(graficoEmpresa, {
+                type:'pie',
+                data:{ labels:empresas, datasets:[{ data:empresas.map(e=>lista.filter(f=>f.empresa===e).length) }] },
+                options:{ maintainAspectRatio:false }
+            });
+
+            gProduto = new Chart(graficoProduto, {
+                type:'doughnut',
+                data:{ labels:prod, datasets:[{ data:prod.map(p=>lista.filter(f=>f.produto===p).length) }] },
+                options:{ maintainAspectRatio:false }
+            });
+
+            gBarra = new Chart(graficoBarra, {
+                type:'bar',
+                data:{ labels:empresas, datasets:[{ data:empresas.map(e=>lista.filter(f=>f.empresa===e).length) }] },
+                options:{ maintainAspectRatio:false }
+            });
+        }
+
+        function aplicarFiltros() {
+            const b = filtroBusca.value.toLowerCase();
+            lista = cache.filter(f =>
+                `${f.nome} ${f.empresa} ${f.produto}`.toLowerCase().includes(b) &&
+                (!filtroEmpresa.value || f.empresa === filtroEmpresa.value) &&
+                (!filtroProduto.value || f.produto === filtroProduto.value)
+            );
+            atualizarDashboard();
+            renderTabela();
+            atualizarGraficos();
+        }
+
+        function limparFiltros() {
+            filtroBusca.value = filtroEmpresa.value = filtroProduto.value = "";
+            lista = [...cache];
+            atualizarDashboard();
+            renderTabela();
+            atualizarGraficos();
+        }
+
         function abrirModalNovo() {
-            document.getElementById("modalTitulo").innerText = "Novo Fornecedor";
             fornecedorId.value = "";
-            limparFormulario();
+            nome.value = empresa.value = telefone.value = email.value = produto.value = "";
             modal.show();
         }
 
-        async function abrirModalEditar(id) {
-            const f = cacheFornecedores.find(x => x.id === id);
+        function abrirModalEditar(id) {
+            const f = cache.find(x => x.id === id);
             fornecedorId.value = f.id;
             nome.value = f.nome;
             empresa.value = f.empresa;
             telefone.value = f.telefone;
             email.value = f.email;
             produto.value = f.produto;
-
-            document.getElementById("modalTitulo").innerText = "Editar Fornecedor";
             modal.show();
         }
 
         async function salvarFornecedor() {
             const id = fornecedorId.value;
-
-            const fornecedor = {
-                nome: nome.value,
-                empresa: empresa.value,
-                telefone: telefone.value,
-                email: email.value,
-                produto: produto.value
-            };
-
             await fetch(id ? `/Fornecedor/Editar/${id}` : `/Fornecedor/Adicionar`, {
                 method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(fornecedor)
+                body: JSON.stringify({
+                    nome:nome.value, empresa:empresa.value,
+                    telefone:telefone.value, email:email.value, produto:produto.value
+                })
             });
-
             modal.hide();
             carregarFornecedores();
         }
 
         async function apagarFornecedor(id) {
             if (!confirm("Excluir fornecedor?")) return;
-            await fetch(`/Fornecedor/Apagar/${id}`, { method: 'DELETE' });
+            await fetch(`/Fornecedor/Apagar/${id}`, { method:'DELETE' });
             carregarFornecedores();
-        }
-
-        function limparFormulario() {
-            nome.value = empresa.value = telefone.value = email.value = produto.value = "";
         }
     </script>
 }

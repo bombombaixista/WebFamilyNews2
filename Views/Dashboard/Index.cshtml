@@ -2,41 +2,58 @@
     ViewData["Title"] = "Dashboard Financeiro";
 }
 
-<h2>Dashboard Financeiro</h2>
+<h2 class="mb-4">Dashboard Financeiro</h2>
 
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header bg-success text-white">Distribuição por Categoria</div>
-            <div class="card-body text-center">
-                <canvas id="graficoPizza" style="max-width:350px; max-height:250px;"></canvas>
+<!-- CARDS -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-success text-white text-center">
+            <div class="card-body">
+                <h6>Entradas</h6>
+                <h4 id="totalEntrada">R$ 0,00</h4>
             </div>
         </div>
     </div>
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header bg-primary text-white">Receitas vs Despesas por Mês</div>
-            <div class="card-body text-center">
-                <canvas id="graficoBarras" style="max-width:350px; max-height:250px;"></canvas>
+
+    <div class="col-md-4">
+        <div class="card bg-danger text-white text-center">
+            <div class="card-body">
+                <h6>Saídas</h6>
+                <h4 id="totalSaida">R$ 0,00</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-dark text-white text-center">
+            <div class="card-body">
+                <h6>Saldo</h6>
+                <h4 id="saldoTotal">R$ 0,00</h4>
             </div>
         </div>
     </div>
 </div>
 
+<!-- GRÁFICOS -->
 <div class="row">
     <div class="col-md-6 mb-4">
         <div class="card">
-            <div class="card-header bg-info text-white">Saldo Acumulado</div>
-            <div class="card-body text-center">
-                <canvas id="graficoLinhas" style="max-width:350px; max-height:250px;"></canvas>
+            <div class="card-header bg-primary text-white">
+                Entrada x Saída
+            </div>
+            <div class="card-body" style="height:260px">
+                <canvas id="graficoDonut"></canvas>
             </div>
         </div>
     </div>
+
     <div class="col-md-6 mb-4">
         <div class="card">
-            <div class="card-header bg-warning text-dark">Evolução Receitas vs Despesas</div>
-            <div class="card-body text-center">
-                <canvas id="graficoArea" style="max-width:350px; max-height:250px;"></canvas>
+            <div class="card-header bg-secondary text-white">
+                Evolução Financeira
+            </div>
+            <div class="card-body" style="height:260px">
+                <canvas id="graficoBarras"></canvas>
             </div>
         </div>
     </div>
@@ -44,104 +61,151 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
+        let dados = [];
+        let donutChart, barChart;
+
+        /* =====================
+           CARREGAMENTO
+        ===================== */
         async function carregarFinanceiro() {
             const resp = await fetch('/Financeiro/Listar');
-            const registros = await resp.json();
+            dados = await resp.json();
 
-            if (!registros || registros.length === 0) {
-                alert("Nenhum dado financeiro encontrado.");
+            if (!Array.isArray(dados) || dados.length === 0) {
+                alert("Sem dados financeiros");
                 return;
             }
 
-            // --- Pizza: categorias ---
-            const categorias = {};
+            atualizarTudo();
+        }
+
+        /* =====================
+           ATUALIZA GERAL
+        ===================== */
+        function atualizarTudo() {
+            atualizarCards(dados);
+            atualizarDonut(dados);
+            atualizarBarras(dados);
+        }
+
+        /* =====================
+           CARDS
+        ===================== */
+        function atualizarCards(registros) {
+            let entrada = 0, saida = 0;
+
             registros.forEach(r => {
-                categorias[r.categoria || 'Sem categoria'] = (categorias[r.categoria || 'Sem categoria'] || 0) + Number(r.valor || 0);
+                const valor = Number(r.valor || 0);
+                const tipo = (r.tipo || '').toLowerCase();
+
+                if (tipo.includes('receita') || tipo.includes('entrada'))
+                    entrada += valor;
+                else
+                    saida += valor;
             });
 
-            new Chart(document.getElementById('graficoPizza'), {
-                type: 'pie',
+            totalEntrada.innerText =
+                entrada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            totalSaida.innerText =
+                saida.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            saldoTotal.innerText =
+                (entrada - saida).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        /* =====================
+           DONUT ENTRADA x SAÍDA
+        ===================== */
+        function atualizarDonut(registros) {
+            let entrada = 0, saida = 0;
+
+            registros.forEach(r => {
+                const valor = Number(r.valor || 0);
+                const tipo = (r.tipo || '').toLowerCase();
+
+                if (tipo.includes('receita') || tipo.includes('entrada'))
+                    entrada += valor;
+                else
+                    saida += valor;
+            });
+
+            if (donutChart) donutChart.destroy();
+
+            donutChart = new Chart(graficoDonut, {
+                type: 'doughnut',
                 data: {
-                    labels: Object.keys(categorias),
+                    labels: ['Entradas', 'Saídas'],
                     datasets: [{
-                        data: Object.values(categorias),
-                        backgroundColor: ['#28a745','#dc3545','#6c757d','#ffc107','#17a2b8']
+                        data: [entrada, saida],
+                        backgroundColor: ['#28a745', '#dc3545']
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
                 }
             });
+        }
 
-            // --- Barras: receitas vs despesas ---
-            const meses = {};
+        /* =====================
+           BARRAS - EVOLUÇÃO
+        ===================== */
+        function atualizarBarras(registros) {
+            const grupos = {};
+
             registros.forEach(r => {
                 const d = new Date(r.data);
                 if (isNaN(d)) return;
-                const mes = d.toLocaleString('default', { month: 'short', year: 'numeric' });
-                if (!meses[mes]) meses[mes] = { receita: 0, despesa: 0 };
-                if ((r.tipo || '').toLowerCase() === 'receita') meses[mes].receita += Number(r.valor || 0);
-                else meses[mes].despesa += Number(r.valor || 0);
+
+                const chave = d.toLocaleDateString('pt-BR', {
+                    month: 'short',
+                    year: 'numeric'
+                });
+
+                grupos[chave] ??= { entrada: 0, saida: 0 };
+
+                const valor = Number(r.valor || 0);
+                const tipo = (r.tipo || '').toLowerCase();
+
+                if (tipo.includes('receita') || tipo.includes('entrada'))
+                    grupos[chave].entrada += valor;
+                else
+                    grupos[chave].saida += valor;
             });
 
-            new Chart(document.getElementById('graficoBarras'), {
+            if (barChart) barChart.destroy();
+
+            barChart = new Chart(graficoBarras, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(meses),
+                    labels: Object.keys(grupos),
                     datasets: [
-                        { label: 'Receitas', data: Object.values(meses).map(m => m.receita), backgroundColor: '#28a745' },
-                        { label: 'Despesas', data: Object.values(meses).map(m => m.despesa), backgroundColor: '#dc3545' }
+                        {
+                            label: 'Entradas',
+                            data: Object.values(grupos).map(g => g.entrada),
+                            backgroundColor: '#28a745',
+                            barThickness: 14
+                        },
+                        {
+                            label: 'Saídas',
+                            data: Object.values(grupos).map(g => g.saida),
+                            backgroundColor: '#dc3545',
+                            barThickness: 14
+                        }
                     ]
-                }
-            });
-
-            // --- Linhas: saldo acumulado ---
-            const ordenados = [...registros].filter(r => !isNaN(new Date(r.data))).sort((a,b) => new Date(a.data) - new Date(b.data));
-            let saldo = 0;
-            const labels = [];
-            const valores = [];
-            ordenados.forEach(r => {
-                const v = Number(r.valor || 0);
-                saldo += ((r.tipo || '').toLowerCase() === 'receita') ? v : -v;
-                labels.push(new Date(r.data).toLocaleDateString());
-                valores.push(saldo);
-            });
-
-            new Chart(document.getElementById('graficoLinhas'), {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Saldo acumulado',
-                        data: valores,
-                        borderColor: '#28a745',
-                        backgroundColor: 'rgba(40,167,69,0.2)',
-                        fill: true
-                    }]
-                }
-            });
-
-            // --- Área: evolução receitas vs despesas ---
-            const datas = [];
-            const receitas = [];
-            const despesas = [];
-            ordenados.forEach(r => {
-                datas.push(new Date(r.data).toLocaleDateString());
-                if ((r.tipo || '').toLowerCase() === 'receita') {
-                    receitas.push(Number(r.valor || 0));
-                    despesas.push(0);
-                } else {
-                    despesas.push(Number(r.valor || 0));
-                    receitas.push(0);
-                }
-            });
-
-            new Chart(document.getElementById('graficoArea'), {
-                type: 'line',
-                data: {
-                    labels: datas,
-                    datasets: [
-                        { label: 'Receitas', data: receitas, borderColor: '#28a745', backgroundColor: 'rgba(40,167,69,0.3)', fill: true },
-                        { label: 'Despesas', data: despesas, borderColor: '#dc3545', backgroundColor: 'rgba(220,53,69,0.3)', fill: true }
-                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    }
                 }
             });
         }

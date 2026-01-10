@@ -2,41 +2,51 @@
     ViewData["Title"] = "Financeiro";
 }
 
-<!-- DASHBOARD FINANCEIRO -->
+<style>
+    /* ===== DESTAQUE DA BARRA DE FILTRO ===== */
+    .filtro-destaque {
+        background: #f1f8f5;
+        border-left: 6px solid #198754;
+    }
+
+        .filtro-destaque .form-label {
+            font-weight: 600;
+            color: #0f5132;
+        }
+
+        .filtro-destaque .btn-success {
+            box-shadow: 0 4px 12px rgba(25, 135, 84, 0.45);
+        }
+</style>
+
+<!-- DASHBOARD -->
 <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm border-0 text-white"
-             style="background: linear-gradient(135deg,#198754,#157347);">
+    <div class="col-md-3">
+        <div class="card text-white shadow-sm" style="background:#198754">
             <div class="card-body">
-                <div class="small">Saldo Atual</div>
+                <div class="small">Saldo</div>
                 <h4 id="dashSaldo">R$ 0,00</h4>
             </div>
         </div>
     </div>
-
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm border-0 text-white"
-             style="background: linear-gradient(135deg,#0d6efd,#0b5ed7);">
+    <div class="col-md-3">
+        <div class="card text-white shadow-sm" style="background:#0d6efd">
             <div class="card-body">
                 <div class="small">Entradas</div>
                 <h4 id="dashEntradas">R$ 0,00</h4>
             </div>
         </div>
     </div>
-
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm border-0 text-white"
-             style="background: linear-gradient(135deg,#dc3545,#bb2d3b);">
+    <div class="col-md-3">
+        <div class="card text-white shadow-sm" style="background:#dc3545">
             <div class="card-body">
                 <div class="small">Saídas</div>
                 <h4 id="dashSaidas">R$ 0,00</h4>
             </div>
         </div>
     </div>
-
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm border-0 text-dark"
-             style="background: linear-gradient(135deg,#f6c23e,#dda20a);">
+    <div class="col-md-3">
+        <div class="card shadow-sm">
             <div class="card-body">
                 <div class="small">Movimentações</div>
                 <h4 id="dashQtd">0</h4>
@@ -45,176 +55,227 @@
     </div>
 </div>
 
-<!-- HEADER -->
-<div class="card shadow-sm mb-3 border-0">
-    <div class="card-body d-flex justify-content-between align-items-center flex-wrap"
-         style="background: linear-gradient(135deg,#198754,#0d6efd); color:white;">
-        <h5 class="mb-2 mb-md-0">💰 Controle Financeiro</h5>
+<!-- FILTROS -->
+<div class="card shadow-sm mb-3 filtro-destaque">
+    <div class="card-body row g-2 align-items-end">
+        <div class="col-md-2">
+            <label class="form-label">Tipo</label>
+            <select id="filtroTipo" class="form-select">
+                <option value="">Todos</option>
+                <option value="Entrada">Entrada</option>
+                <option value="Saida">Saída</option>
+            </select>
+        </div>
 
-        <button class="btn btn-light fw-bold text-success"
-                onclick="abrirModalNovo()">
-            ➕ Nova Movimentação
-        </button>
+        <div class="col-md-2">
+            <label class="form-label">Período</label>
+            <select id="filtroPeriodo" class="form-select">
+                <option value="">Manual</option>
+                <option value="hoje">Hoje</option>
+                <option value="mes">Mês</option>
+                <option value="ano">Ano</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Início</label>
+            <input type="date" id="filtroInicio" class="form-control">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Fim</label>
+            <input type="date" id="filtroFim" class="form-control">
+        </div>
+
+        <div class="col-md-2 d-flex gap-2">
+            <button class="btn btn-success w-100" onclick="aplicarFiltros()">Filtrar</button>
+            <button class="btn btn-secondary w-100" onclick="limparFiltros()">Limpar</button>
+        </div>
     </div>
 </div>
 
+<!-- AÇÕES -->
+<div class="mb-3 text-end">
+    <button class="btn btn-primary" onclick="abrirModalNovo()">➕ Nova Movimentação</button>
+</div>
+
 <!-- TABELA -->
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead style="background:#f8f9fc;">
-                    <tr class="text-secondary">
-                        <th>#</th>
-                        <th>Descrição</th>
-                        <th>Tipo</th>
-                        <th>Valor</th>
-                        <th class="d-none d-md-table-cell">Categoria</th>
-                        <th>Data</th>
-                        <th class="text-center">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="financeiro"></tbody>
-            </table>
-        </div>
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Descrição</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Categoria</th>
+                    <th>Data</th>
+                    <th class="text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="financeiro"></tbody>
+        </table>
     </div>
 </div>
 
 <!-- MODAL -->
-<div class="modal fade" id="modalFinanceiro" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+<div class="modal fade" id="modalFinanceiro">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header"
-                 style="background: linear-gradient(135deg,#0d6efd,#198754); color:white;">
-                <h5 class="modal-title" id="modalTitulo">Movimentação</h5>
-                <button class="btn-close btn-close-white"
-                        data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 id="modalTitulo">Movimentação</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-
-            <div class="modal-body">
+            <div class="modal-body row g-3">
                 <input type="hidden" id="movId">
 
-                <div class="row g-3">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">Descrição</label>
-                        <input type="text" id="descricao" class="form-control">
-                    </div>
+                <div class="col-md-6">
+                    <label class="form-label">Descrição</label>
+                    <input id="descricao" class="form-control">
+                </div>
 
-                    <div class="col-12 col-md-3">
-                        <label class="form-label">Tipo</label>
-                        <select id="tipo" class="form-select">
-                            <option value="Entrada">Entrada</option>
-                            <option value="Saida">Saída</option>
-                        </select>
-                    </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tipo</label>
+                    <select id="tipo" class="form-select">
+                        <option value="Entrada">Entrada</option>
+                        <option value="Saida">Saída</option>
+                    </select>
+                </div>
 
-                    <div class="col-12 col-md-3">
-                        <label class="form-label">Valor</label>
-                        <input type="number" step="0.01" id="valor" class="form-control">
-                    </div>
+                <div class="col-md-3">
+                    <label class="form-label">Valor</label>
+                    <input type="number" step="0.01" id="valor" class="form-control">
+                </div>
 
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">Categoria</label>
-                        <input type="text" id="categoria" class="form-control">
-                    </div>
+                <div class="col-md-6">
+                    <label class="form-label">Categoria</label>
+                    <input id="categoria" class="form-control">
+                </div>
 
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">Data</label>
-                        <input type="date" id="data" class="form-control">
-                    </div>
+                <div class="col-md-6">
+                    <label class="form-label">Data</label>
+                    <input type="date" id="data" class="form-control">
                 </div>
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-                    Cancelar
-                </button>
-
-                <button class="btn btn-success"
-                        onclick="salvarMovimentacao()">
-                    💾 Salvar
-                </button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-success" onclick="salvarMovimentacao()">Salvar</button>
             </div>
         </div>
     </div>
 </div>
-
-@section Styles {
-    <style>
-        .form-control:focus, .form-select:focus {
-            border-color: #198754;
-            box-shadow: 0 0 0 .15rem rgba(25,135,84,.25);
-        }
-    </style>
-}
 
 @section Scripts {
     <script>
         let modal;
         let cache = [];
+        let listaAtual = [];
 
         document.addEventListener("DOMContentLoaded", () => {
             modal = new bootstrap.Modal(document.getElementById("modalFinanceiro"));
             carregarFinanceiro();
         });
 
-        async function carregarFinanceiro() {
-            const resp = await fetch('/Financeiro/Listar');
-            cache = await resp.json();
-
-            atualizarDashboard();
-            renderTabela();
+        function somenteData(str) {
+            return str.split('T')[0];
         }
 
-        function atualizarDashboard() {
-            let entradas = 0, saidas = 0;
+        async function carregarFinanceiro() {
+            const r = await fetch('/Financeiro/Listar');
+            cache = await r.json();
+            listaAtual = [...cache];
+            atualizarDashboard(listaAtual);
+            renderTabela(listaAtual);
+        }
 
-            cache.forEach(m => {
-                if (m.tipo === "Entrada") entradas += m.valor;
-                else saidas += m.valor;
+        function atualizarDashboard(lista) {
+            let ent = 0, sai = 0;
+            lista.forEach(m => {
+                const v = Number(m.valor || 0);
+                m.tipo === "Entrada" ? ent += v : sai += v;
             });
 
-            dashEntradas.innerText = `R$ ${entradas.toFixed(2)}`;
-            dashSaidas.innerText = `R$ ${saidas.toFixed(2)}`;
-            dashSaldo.innerText = `R$ ${(entradas - saidas).toFixed(2)}`;
-            dashQtd.innerText = cache.length;
+            dashEntradas.innerText = ent.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            dashSaidas.innerText   = sai.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            dashSaldo.innerText   = (ent - sai).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            dashQtd.innerText     = lista.length;
         }
 
-        function badgeTipo(tipo) {
-            return tipo === "Entrada"
-                ? `<span class="badge bg-success">Entrada</span>`
-                : `<span class="badge bg-danger">Saída</span>`;
+        function aplicarFiltros() {
+            const tipo = filtroTipo.value;
+            const ini = filtroInicio.value;
+            const fim = filtroFim.value;
+
+            listaAtual = cache.filter(m => {
+                const d = somenteData(m.data);
+                if (tipo && m.tipo !== tipo) return false;
+                if (ini && d < ini) return false;
+                if (fim && d > fim) return false;
+                return true;
+            });
+
+            atualizarDashboard(listaAtual);
+            renderTabela(listaAtual);
         }
 
-        function renderTabela() {
+        filtroPeriodo.addEventListener("change", () => {
+            const hoje = new Date().toISOString().slice(0,10);
+
+            if (filtroPeriodo.value === "hoje") {
+                filtroInicio.value = hoje;
+                filtroFim.value = hoje;
+            }
+
+            if (filtroPeriodo.value === "mes") {
+                const d = new Date();
+                filtroInicio.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+                filtroFim.value = hoje;
+            }
+
+            if (filtroPeriodo.value === "ano") {
+                const y = new Date().getFullYear();
+                filtroInicio.value = `${y}-01-01`;
+                filtroFim.value = hoje;
+            }
+
+            aplicarFiltros();
+        });
+
+        function limparFiltros() {
+            filtroTipo.value = filtroPeriodo.value = filtroInicio.value = filtroFim.value = "";
+            listaAtual = [...cache];
+            atualizarDashboard(listaAtual);
+            renderTabela(listaAtual);
+        }
+
+        function renderTabela(lista) {
             financeiro.innerHTML = "";
-
-            cache.forEach(m => {
+            lista.forEach(m => {
                 financeiro.innerHTML += `
                 <tr>
                     <td>${m.id}</td>
                     <td>${m.descricao}</td>
-                    <td>${badgeTipo(m.tipo)}</td>
-                    <td class="${m.tipo === 'Entrada' ? 'text-success' : 'text-danger'}">
-                        R$ ${m.valor.toFixed(2)}
+                    <td><span class="badge ${m.tipo==='Entrada'?'bg-success':'bg-danger'}">${m.tipo}</span></td>
+                    <td class="${m.tipo==='Entrada'?'text-success':'text-danger'}">
+                        ${Number(m.valor||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
                     </td>
-                    <td class="d-none d-md-table-cell">${m.categoria}</td>
+                    <td>${m.categoria}</td>
                     <td>${new Date(m.data).toLocaleDateString()}</td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-warning text-white me-1"
-                                onclick="abrirModalEditar(${m.id})">✏️</button>
-                        <button class="btn btn-sm btn-danger"
-                                onclick="apagarMovimentacao(${m.id})">🗑️</button>
+                        <button class="btn btn-sm btn-warning text-white" onclick="abrirModalEditar(${m.id})">✏️</button>
+                        <button class="btn btn-sm btn-danger" onclick="apagarMovimentacao(${m.id})">🗑️</button>
                     </td>
                 </tr>`;
             });
         }
 
         function abrirModalNovo() {
-            modalTitulo.innerText = "Nova Movimentação";
             movId.value = "";
-            limpar();
+            descricao.value = categoria.value = "";
+            valor.value = 0;
+            data.value = "";
             modal.show();
         }
 
@@ -225,15 +286,12 @@
             tipo.value = m.tipo;
             valor.value = m.valor;
             categoria.value = m.categoria;
-            data.value = m.data.split('T')[0];
-
-            modalTitulo.innerText = "Editar Movimentação";
+            data.value = somenteData(m.data);
             modal.show();
         }
 
         async function salvarMovimentacao() {
             const id = movId.value;
-
             const mov = {
                 descricao: descricao.value,
                 tipo: tipo.value,
@@ -256,12 +314,6 @@
             if (!confirm("Excluir movimentação?")) return;
             await fetch(`/Financeiro/Apagar/${id}`, { method: 'DELETE' });
             carregarFinanceiro();
-        }
-
-        function limpar() {
-            descricao.value = tipo.value = categoria.value = "";
-            valor.value = 0;
-            data.value = "";
         }
     </script>
 }

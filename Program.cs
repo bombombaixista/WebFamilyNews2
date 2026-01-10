@@ -1,10 +1,11 @@
 ﻿using Kanban.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using QuestPDF.Infrastructure; // para configurar licença do QuestPDF
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔗 Connection string (ajuste no appsettings.json ou direto aqui)
+// 🔗 Connection string (ajuste no appsettings.json)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<KanbanContext>(options =>
@@ -21,6 +22,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddControllersWithViews();
+
+// ⚙️ Configuração da licença do QuestPDF
+QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();
 

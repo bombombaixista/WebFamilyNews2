@@ -1,173 +1,262 @@
 ﻿@{
-    ViewData["Title"] = "Gestão de Funcionários";
+    ViewData["Title"] = "Dashboard de Funcionários";
 }
 
-<div class="container mt-4">
+<h2 class="text-center mb-4">👥 Dashboard de Funcionários</h2>
 
-    <!-- DASHBOARD / HEADER -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body text-white"
-             style="background: linear-gradient(135deg,#0dcaf0,#0d6efd);">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <div>
-                    <h4 class="mb-1">👥 Funcionários</h4>
-                    <small>Gerencie sua equipe</small>
-                </div>
-                <button class="btn btn-light fw-bold mt-2 mt-md-0"
-                        onclick="abrirModal()">
-                    ➕ Novo Funcionário
-                </button>
+<div class="text-center mb-3">
+    <a href="/Funcionario/Cadastrar" class="btn btn-primary">
+        ➕ Cadastrar Novo Funcionário
+    </a>
+</div>
+
+<!-- KPIs -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white text-center shadow-sm">
+            <div class="card-body py-3">
+                <small>Total Funcionários</small>
+                <h4 id="totalFuncionarios">0</h4>
             </div>
         </div>
     </div>
-
-    <!-- TABELA -->
-    <div class="card shadow-lg border-0">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-primary text-center">
-                        <tr>
-                            <th>#</th>
-                            <th>Nome</th>
-                            <th>Cargo</th>
-                            <th>Email</th>
-                            <th>Telefone</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="funcionarios" class="text-center"></tbody>
-                </table>
+    <div class="col-md-3">
+        <div class="card bg-success text-white text-center shadow-sm">
+            <div class="card-body py-3">
+                <small>Média Salarial</small>
+                <h4 id="mediaSalarial">R$ 0,00</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark text-center shadow-sm">
+            <div class="card-body py-3">
+                <small>Departamentos</small>
+                <h4 id="totalDepartamentos">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white text-center shadow-sm">
+            <div class="card-body py-3">
+                <small>Última Admissão</small>
+                <h4 id="ultimaAdmissao">-</h4>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL -->
-<div class="modal fade" id="funcionarioModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg border-0">
+<!-- Filtros -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body row g-2 align-items-end">
+        <div class="col-md-3">
+            <label>Nome</label>
+            <input id="filtroNome" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label>Departamento</label>
+            <input id="filtroDepartamento" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label>Cargo</label>
+            <input id="filtroCargo" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label>Salário Min</label>
+            <input id="filtroSalarioMin" type="number" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label>Salário Max</label>
+            <input id="filtroSalarioMax" type="number" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-1 d-grid">
+            <button class="btn btn-success btn-sm" onclick="aplicarFiltros()">Filtrar</button>
+            <button class="btn btn-secondary btn-sm mt-1" onclick="limparFiltros()">Limpar</button>
+        </div>
+    </div>
+</div>
 
-            <div class="modal-header text-white"
-                 style="background: linear-gradient(135deg,#0dcaf0,#0d6efd);">
-                <h5 class="modal-title">👤 Funcionário</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- GRÁFICOS BEM PEQUENOS -->
+<div class="row mb-4 justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center p-2">
+            <small class="fw-bold">Por Departamento</small>
+            <div class="grafico-mini">
+                <canvas id="graficoDepartamentos"></canvas>
             </div>
-
-            <div class="modal-body p-4">
-                <input type="hidden" id="funcionarioId" />
-
-                <div class="mb-3">
-                    <label class="form-label">Nome</label>
-                    <input type="text" id="nome" class="form-control" />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Cargo</label>
-                    <input type="text" id="cargo" class="form-control" />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" id="email" class="form-control" />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Telefone</label>
-                    <input type="text" id="telefone" class="form-control" />
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button class="btn btn-success" onclick="salvarFuncionario()">💾 Salvar</button>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center p-2">
+            <small class="fw-bold">Admissões</small>
+            <div class="grafico-mini">
+                <canvas id="graficoAdmissoes"></canvas>
             </div>
         </div>
     </div>
 </div>
+
+<div id="alertNenhum" class="alert alert-info" style="display:none;">
+    Nenhum funcionário encontrado.
+</div>
+
+<!-- TABELA -->
+<div class="card shadow">
+    <div class="card-body">
+        <table class="table table-sm table-hover" id="tabelaFuncionarios">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Cargo</th>
+                    <th>Departamento</th>
+                    <th>Admissão</th>
+                    <th>Salário</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* GRÁFICOS BEM MENORES */
+        .grafico-mini {
+            width: 220px;
+            height: 160px;
+            margin: 10px auto;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
+}
 
 @section Scripts {
-    <script>
-        let modal;
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        document.addEventListener("DOMContentLoaded", () => {
-            modal = new bootstrap.Modal(document.getElementById("funcionarioModal"));
-            carregarFuncionarios();
-        });
+    <script>
+        let funcionarios = [];
+        let graficoDept = null;
+        let graficoAdm = null;
 
         async function carregarFuncionarios() {
             const resp = await fetch('/Funcionario/Listar');
-            const funcionarios = await resp.json();
-            const tbody = document.getElementById("funcionarios");
+            funcionarios = await resp.json();
+            aplicarFiltros();
+        }
+
+        function aplicarFiltros() {
+            const nome = filtroNome.value.toLowerCase();
+            const dep = filtroDepartamento.value.toLowerCase();
+            const cargo = filtroCargo.value.toLowerCase();
+            const salMin = parseFloat(filtroSalarioMin.value);
+            const salMax = parseFloat(filtroSalarioMax.value);
+
+            const lista = funcionarios.filter(f => {
+                if (nome && !f.nome.toLowerCase().includes(nome)) return false;
+                if (dep && !f.departamento.toLowerCase().includes(dep)) return false;
+                if (cargo && !f.cargo.toLowerCase().includes(cargo)) return false;
+                if (!isNaN(salMin) && f.salario < salMin) return false;
+                if (!isNaN(salMax) && f.salario > salMax) return false;
+                return true;
+            });
+
+            atualizarTela(lista);
+            atualizarGraficos(lista);
+        }
+
+        function limparFiltros() {
+            document.querySelectorAll("input").forEach(i => i.value = "");
+            atualizarTela(funcionarios);
+            atualizarGraficos(funcionarios);
+        }
+
+        function atualizarTela(lista) {
+            const tbody = document.querySelector("#tabelaFuncionarios tbody");
             tbody.innerHTML = "";
 
-            funcionarios.forEach(f => {
+            if (!lista.length) {
+                alertNenhum.style.display = "block";
+                return;
+            }
+            alertNenhum.style.display = "none";
+
+            totalFuncionarios.innerText = lista.length;
+            mediaSalarial.innerText =
+                (lista.reduce((a,f)=>a+f.salario,0)/lista.length)
+                .toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+
+            totalDepartamentos.innerText = [...new Set(lista.map(f=>f.departamento))].length;
+
+            ultimaAdmissao.innerText =
+                new Date(lista.reduce((a,b)=> new Date(a.dataAdmissao) > new Date(b.dataAdmissao) ? a : b).dataAdmissao)
+                .toLocaleDateString();
+
+            lista.forEach(f => {
                 tbody.innerHTML += `
                 <tr>
                     <td>${f.id}</td>
                     <td>${f.nome}</td>
                     <td>${f.cargo}</td>
-                    <td>${f.email ?? "-"}</td>
-                    <td>${f.telefone ?? "-"}</td>
+                    <td>${f.departamento}</td>
+                    <td>${new Date(f.dataAdmissao).toLocaleDateString()}</td>
+                    <td>${f.salario.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
                     <td>
-                        <button class="btn btn-warning btn-sm me-1"
-                                onclick="editarFuncionario(${f.id}, '${f.nome}', '${f.cargo}', '${f.email ?? ""}', '${f.telefone ?? ""}')">
-                            ✏️
-                        </button>
-                        <button class="btn btn-danger btn-sm"
-                                onclick="apagarFuncionario(${f.id})">
-                            🗑️
-                        </button>
+                        <a href="/Funcionario/Editar/${f.id}" class="btn btn-sm btn-warning">✏️</a>
+                        <button class="btn btn-sm btn-danger" onclick="apagar(${f.id})">🗑</button>
                     </td>
                 </tr>`;
             });
         }
 
-        function abrirModal() {
-            document.getElementById("funcionarioId").value = "";
-            document.querySelectorAll("#funcionarioModal input").forEach(i => i.value = "");
-            modal.show();
-        }
+        function atualizarGraficos(lista) {
+            if (graficoDept) graficoDept.destroy();
+            if (graficoAdm) graficoAdm.destroy();
 
-        function editarFuncionario(id, nome, cargo, email, telefone) {
-            document.getElementById("funcionarioId").value = id;
-            document.getElementById("nome").value = nome;
-            document.getElementById("cargo").value = cargo;
-            document.getElementById("email").value = email;
-            document.getElementById("telefone").value = telefone;
-            modal.show();
-        }
-
-        async function salvarFuncionario() {
-            const id = document.getElementById("funcionarioId").value;
-
-            const funcionario = {
-                nome: nome.value,
-                cargo: cargo.value,
-                email: email.value,
-                telefone: telefone.value
-            };
-
-            const url = id
-                ? `/Funcionario/Editar/${id}`
-                : `/Funcionario/Adicionar`;
-
-            const method = id ? "PUT" : "POST";
-
-            await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(funcionario)
+            const deps = [...new Set(lista.map(f => f.departamento))];
+            graficoDept = new Chart(graficoDepartamentos, {
+                type: 'pie',
+                data: {
+                    labels: deps,
+                    datasets: [{
+                        data: deps.map(d => lista.filter(f => f.departamento === d).length),
+                        backgroundColor: ['#0d6efd','#198754','#ffc107','#0dcaf0','#dc3545']
+                    }]
+                },
+                options: { responsive:true, maintainAspectRatio:false }
             });
 
-            modal.hide();
+            const meses = {};
+            lista.forEach(f => {
+                const m = new Date(f.dataAdmissao)
+                    .toLocaleString('pt-BR',{month:'short',year:'numeric'});
+                meses[m] = (meses[m]||0)+1;
+            });
+
+            graficoAdm = new Chart(graficoAdmissoes, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(meses),
+                    datasets: [{
+                        data: Object.values(meses),
+                        backgroundColor:'#0dcaf0'
+                    }]
+                },
+                options: { responsive:true, maintainAspectRatio:false }
+            });
+        }
+
+        async function apagar(id) {
+            if (!confirm("Excluir funcionário?")) return;
+            await fetch(`/Funcionario/Apagar/${id}`, { method:'DELETE' });
             carregarFuncionarios();
         }
 
-        async function apagarFuncionario(id) {
-            if (!confirm("Deseja realmente apagar este funcionário?")) return;
-            await fetch(`/Funcionario/Apagar/${id}`, { method: "DELETE" });
-            carregarFuncionarios();
-        }
+        document.addEventListener('DOMContentLoaded', carregarFuncionarios);
     </script>
 }

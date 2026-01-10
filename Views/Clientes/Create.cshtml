@@ -1,37 +1,159 @@
-﻿<h2>Novo Cliente</h2>
-
-@if (ViewBag.Error != null)
-{
-    <div class="alert alert-danger">@ViewBag.Error</div>
+﻿@{
+    ViewData["Title"] = "Cadastro";
 }
 
-<form method="post">
-    <div class="mb-3">
-        <label>Nome</label>
-        <input name="nome" class="form-control" required />
-    </div>
+<div class="container d-flex justify-content-center align-items-center"
+     style="min-height:85vh;">
+    <div class="card shadow-lg border-0 w-100"
+         style="max-width:420px;">
 
-    <div class="mb-3">
-        <label>Email</label>
-        <input name="email" class="form-control" />
-    </div>
+        <!-- HEADER -->
+        <div class="card-header text-center text-white"
+             style="background: linear-gradient(135deg,#0d6efd,#198754);">
+            <h4 class="mb-0">📝 Criar Conta</h4>
+            <small>Preencha os dados para se cadastrar</small>
+        </div>
 
-    <div class="mb-3">
-        <label>Senha</label>
-        <input name="senha" type="password" class="form-control" required />
-    </div>
+        <!-- BODY -->
+        <div class="card-body p-4">
 
-    <div class="mb-3">
-        <label>Grupo</label>
-        <select name="grupoId" class="form-select">
-            <option value="">-- Sem grupo --</option>
-            @foreach (var g in ViewBag.Grupos)
-            {
-                <option value="@g.Id">@g.Nome</option>
+            <form asp-action="Register" method="post" id="formCadastro">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label">Nome</label>
+                    <input type="text"
+                           name="nome"
+                           class="form-control"
+                           placeholder="Seu nome completo"
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email"
+                           name="email"
+                           class="form-control"
+                           placeholder="seu@email.com"
+                           required />
+                </div>
+
+                <div class="mb-3 position-relative">
+                    <label class="form-label">Senha</label>
+                    <input type="password"
+                           name="senha"
+                           class="form-control"
+                           placeholder="••••••••"
+                           required
+                           id="senhaInput" />
+                    <button type="button" class="btn btn-sm btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
+                            id="toggleSenha">
+                        👁️
+                    </button>
+                </div>
+
+                <div class="d-grid mt-4">
+                    <button type="submit"
+                            class="btn btn-success btn-lg"
+                            id="btnCadastrar">
+                        🚀 Cadastrar
+                    </button>
+                </div>
+            </form>
+
+            <!-- ERROS -->
+            <div id="erroContainer" class="alert alert-danger mt-3 mb-0 d-none">
+                <ul class="mb-0 ps-3" id="erroList"></ul>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="card-footer text-center bg-light">
+            <small class="text-muted">
+                Já possui conta?
+                <a asp-action="Login" class="fw-bold text-decoration-none text-primary">
+                    Entrar
+                </a>
+            </small>
+        </div>
+
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .form-control:focus {
+            border-color: #198754;
+            box-shadow: 0 0 0 .15rem rgba(25,135,84,.25);
+        }
+
+        #toggleSenha {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+            #toggleSenha:hover {
+                color: #198754;
             }
-        </select>
-    </div>
 
-    <button class="btn btn-primary">Salvar</button>
-    <a asp-action="Index" class="btn btn-secondary">Voltar</a>
-</form>
+        .btn-lg {
+            box-shadow: 0 4px 12px rgba(25,135,84,0.45);
+        }
+
+        #erroContainer {
+            transition: all 0.3s ease;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Toggle mostrar/ocultar senha
+        const senhaInput = document.getElementById("senhaInput");
+        const toggleSenha = document.getElementById("toggleSenha");
+
+        toggleSenha.addEventListener("click", () => {
+            if (senhaInput.type === "password") {
+                senhaInput.type = "text";
+                toggleSenha.textContent = "🙈";
+            } else {
+                senhaInput.type = "password";
+                toggleSenha.textContent = "👁️";
+            }
+        });
+
+        // Validação antes do submit
+        const form = document.getElementById("formCadastro");
+        const btnCadastrar = document.getElementById("btnCadastrar");
+        const erroContainer = document.getElementById("erroContainer");
+        const erroList = document.getElementById("erroList");
+
+        form.addEventListener("submit", (e) => {
+            erroList.innerHTML = "";
+            erroContainer.classList.add("d-none");
+
+            const nome = form.nome.value.trim();
+            const email = form.email.value.trim();
+            const senha = form.senha.value.trim();
+            const erros = [];
+
+            if (!nome) erros.push("O campo Nome é obrigatório.");
+            if (!email) erros.push("O campo Email é obrigatório.");
+            if (!senha) erros.push("O campo Senha é obrigatório.");
+            if (senha && senha.length < 6) erros.push("A senha deve ter pelo menos 6 caracteres.");
+
+            if (erros.length) {
+                e.preventDefault();
+                erros.forEach(err => {
+                    const li = document.createElement("li");
+                    li.textContent = err;
+                    erroList.appendChild(li);
+                });
+                erroContainer.classList.remove("d-none");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+    </script>
+}

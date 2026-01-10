@@ -1,0 +1,52 @@
+﻿@model List<Kanban.Models.Funcionario>
+
+@{
+    ViewData["Title"] = "Lista de Funcionários";
+}
+
+<h2>👥 Funcionários Cadastrados</h2>
+
+<p>
+    <a asp-action="Cadastrar" class="btn btn-primary">➕ Novo Funcionário</a>
+</p>
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Cargo</th>
+            <th>Departamento</th>
+            <th>Data de Admissão</th>
+            <th>Salário</th>
+            <th>Email</th>
+            <th>Telefone</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var f in Model)
+            {
+                <tr>
+                    <td>@f.Id</td>
+                    <td>@f.Nome</td>
+                    <td>@f.CPF</td>
+                    <td>@f.Cargo</td>
+                    <td>@f.Departamento</td>
+                    <td>@f.DataAdmissao.ToString("dd/MM/yyyy")</td>
+                    <td>R$ @f.Salario.ToString("N2")</td>
+                    <td>@f.Email</td>
+                    <td>@f.Telefone</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="9" class="text-center">Nenhum funcionário cadastrado.</td>
+            </tr>
+        }
+    </tbody>
+</table>
