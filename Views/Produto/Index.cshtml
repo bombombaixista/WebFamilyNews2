@@ -40,23 +40,25 @@
     </div>
 
     <!-- Gráficos -->
-    <div class="row mb-4">
-        <div class="col-md-6 text-center">
-            <div style="height:200px; width:300px; margin:auto;">
-                <canvas id="graficoCategorias"></canvas>
+    <div class="row mb-4 text-center">
+        <div class="col-md-4">
+            <div style="height:200px; width:200px; margin:auto;">
+                <canvas id="graficoPizza"></canvas>
             </div>
+            <small>Produtos por Categoria</small>
         </div>
-        <div class="col-md-6 text-center">
-            <div style="height:200px; width:300px; margin:auto;">
-                <canvas id="graficoEstoque"></canvas>
+        <div class="col-md-4">
+            <div style="height:200px; width:200px; margin:auto;">
+                <canvas id="graficoDonut"></canvas>
             </div>
+            <small>Estoque Disponível</small>
         </div>
-    </div>
-
-    <!-- Botões de ação -->
-    <div class="mb-3 text-center">
-        <a asp-action="Create" class="btn btn-success me-2">➕ Adicionar Produto</a>
-        <a asp-action="Movimentacoes" class="btn btn-info">📜 Histórico</a>
+        <div class="col-md-4">
+            <div style="height:200px; width:200px; margin:auto;">
+                <canvas id="graficoBarra"></canvas>
+            </div>
+            <small>Quantidade por Produto</small>
+        </div>
     </div>
 
     <!-- Filtros avançados -->
@@ -140,18 +142,8 @@
                             <td>R$ @p.Preco</td>
                             <td>
                                 <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-warning btn-sm">✏️ Editar</a>
-
-                                <form asp-action="Entrada" method="post" class="d-inline ms-2">
-                                    <input type="hidden" name="id" value="@p.Id" />
-                                    <input type="number" name="quantidade" min="1" class="form-control d-inline w-25" />
-                                    <button type="submit" class="btn btn-primary btn-sm">Entrada</button>
-                                </form>
-
-                                <form asp-action="Saida" method="post" class="d-inline ms-2">
-                                    <input type="hidden" name="id" value="@p.Id" />
-                                    <input type="number" name="quantidade" min="1" class="form-control d-inline w-25" />
-                                    <button type="submit" class="btn btn-danger btn-sm">Saída</button>
-                                </form>
+                                <button class="btn btn-primary btn-sm ms-1" onclick="abrirModal(@p.Id, 'Entrada')">Entrada</button>
+                                <button class="btn btn-danger btn-sm ms-1" onclick="abrirModal(@p.Id, 'Saida')">Saída</button>
                             </td>
                         </tr>
                     }
@@ -161,53 +153,51 @@
     </div>
 </div>
 
+<!-- Modal de Movimentação -->
+<div class="modal fade" id="movModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="movModalTitulo">Movimentação</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="movForm" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="movId">
+                    <div class="mb-2">
+                        <label>Quantidade</label>
+                        <input type="number" name="quantidade" id="movQuantidade" class="form-control" min="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Styles {
     <style>
-        .filtro-destaque {
-            background: #f1f8f5;
-            border-left: 6px solid #198754;
-        }
+        .filtro-destaque { background: #f1f8f5; border-left: 6px solid #198754; }
     </style>
 }
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // === Gráfico por categoria ===
-            const categorias = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Categoria)));
-            const countsCat = {};
-            categorias.forEach(c => { countsCat[c] = (countsCat[c] || 0) + 1; });
+        const modalMov = new bootstrap.Modal(document.getElementById("movModal"));
 
-            new Chart(document.getElementById('graficoCategorias'), {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(countsCat),
-                    datasets: [{
-                        data: Object.values(countsCat),
-                        backgroundColor: ['#007bff','#28a745','#ffc107','#17a2b8','#dc3545']
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            // === Gráfico de estoque por produto ===
-            const nomes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Nome)));
-            const estoques = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Estoque)));
-
-            new Chart(document.getElementById('graficoEstoque'), {
-                type: 'bar',
-                data: {
-                    labels: nomes,
-                    datasets: [{
-                        label: 'Estoque',
-                        data: estoques,
-                        backgroundColor: '#17a2b8'
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        });
+        function abrirModal(id, tipo) {
+            document.getElementById("movId").value = id;
+            document.getElementById("movForm").action = "/Produto/" + tipo;
+            document.getElementById("movModalTitulo").innerText = tipo;
+            document.getElementById("movQuantidade").value = 1;
+            modalMov.show();
+        }
 
         // === Filtros avançados ===
         function aplicarFiltros() {
@@ -217,15 +207,13 @@
             const precoMax = parseFloat(document.getElementById("filtroPreco").value);
             const estoqueMin = parseInt(document.getElementById("filtroEstoque").value);
 
-            const linhas = document.querySelectorAll("#produtosTabela tr");
-            linhas.forEach(tr => {
+            document.querySelectorAll("#produtosTabela tr").forEach(tr => {
                 const td = tr.querySelectorAll("td");
                 const nomeProd = td[1].innerText.toLowerCase();
                 const categoriaProd = td[2].innerText;
                 const fornecedorProd = td[3].innerText;
                 const estoqueProd = parseInt(td[8].innerText);
-                const precoTexto = td[9].innerText.replace("R$", "").replace(",", ".").trim();
-                const precoProd = parseFloat(precoTexto);
+                const precoProd = parseFloat(td[9].innerText.replace("R$", "").replace(",", ".").trim());
 
                 let visivel = true;
                 if (nome && !nomeProd.includes(nome)) visivel = false;
@@ -246,5 +234,35 @@
             document.getElementById("filtroEstoque").value = "";
             aplicarFiltros();
         }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // === Gráfico Pizza ===
+            const categorias = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Categoria)));
+            const countsCat = {};
+            categorias.forEach(c => countsCat[c] = (countsCat[c] || 0) + 1);
+
+            new Chart(document.getElementById('graficoPizza'), {
+                type: 'pie',
+                data: { labels: Object.keys(countsCat), datasets: [{ data: Object.values(countsCat), backgroundColor: ['#007bff','#28a745','#ffc107','#17a2b8','#dc3545'] }] },
+                options: { responsive:true, maintainAspectRatio:false }
+            });
+
+            // === Gráfico Donut ===
+            const estoques = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Estoque)));
+            const nomes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Nome)));
+
+            new Chart(document.getElementById('graficoDonut'), {
+                type: 'doughnut',
+                data: { labels: nomes, datasets: [{ data: estoques, backgroundColor: ['#0d6efd','#198754','#ffc107','#fd7e14','#6f42c1'] }] },
+                options: { cutout: '60%', responsive:true, maintainAspectRatio:false }
+            });
+
+            // === Gráfico Barras ===
+            new Chart(document.getElementById('graficoBarra'), {
+                type: 'bar',
+                data: { labels: nomes, datasets:[{ label:'Estoque', data:estoques, backgroundColor:'#17a2b8' }] },
+                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+            });
+        });
     </script>
 }
