@@ -40,25 +40,31 @@
     </div>
 
     <!-- Gráficos -->
-    <div class="row mb-4 text-center">
-        <div class="col-md-4">
+    <div class="row mb-4">
+        <div class="col-md-4 text-center">
             <div style="height:200px; width:200px; margin:auto;">
                 <canvas id="graficoPizza"></canvas>
             </div>
-            <small>Produtos por Categoria</small>
+            <small>Por Categoria</small>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4 text-center">
             <div style="height:200px; width:200px; margin:auto;">
                 <canvas id="graficoDonut"></canvas>
             </div>
-            <small>Estoque Disponível</small>
+            <small>Estoque Crítico</small>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4 text-center">
             <div style="height:200px; width:200px; margin:auto;">
                 <canvas id="graficoBarra"></canvas>
             </div>
-            <small>Quantidade por Produto</small>
+            <small>Resumo</small>
         </div>
+    </div>
+
+    <!-- Botões de ação -->
+    <div class="mb-3 text-center">
+        <a asp-action="Create" class="btn btn-success me-2">➕ Adicionar Produto</a>
+        <a asp-action="Movimentacoes" class="btn btn-info">📜 Histórico</a>
     </div>
 
     <!-- Filtros avançados -->
@@ -141,9 +147,14 @@
                             <td>@p.Estoque</td>
                             <td>R$ @p.Preco</td>
                             <td>
-                                <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-warning btn-sm">✏️ Editar</a>
-                                <button class="btn btn-primary btn-sm ms-1" onclick="abrirModal(@p.Id, 'Entrada')">Entrada</button>
-                                <button class="btn btn-danger btn-sm ms-1" onclick="abrirModal(@p.Id, 'Saida')">Saída</button>
+                                <div class="d-none d-md-flex gap-1">
+                                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-warning btn-sm">✏️ Editar</a>
+                                    <button class="btn btn-primary btn-sm" onclick="abrirEntradaModal(@p.Id)">Entrada</button>
+                                    <button class="btn btn-danger btn-sm" onclick="abrirSaidaModal(@p.Id)">Saída</button>
+                                </div>
+                                <div class="d-flex d-md-none">
+                                    <button class="btn btn-info btn-sm w-100" onclick="abrirAcoesModal(@p.Id)">Ações</button>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -153,53 +164,61 @@
     </div>
 </div>
 
-<!-- Modal de Movimentação -->
-<div class="modal fade" id="movModal">
+<!-- Modal Mobile Ações -->
+<div class="modal fade" id="acoesModal">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="movModalTitulo">Movimentação</h5>
+                <h5 class="modal-title">Ações do Produto</h5>
                 <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form id="movForm" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="id" id="movId">
-                    <div class="mb-2">
-                        <label>Quantidade</label>
-                        <input type="number" name="quantidade" id="movQuantidade" class="form-control" min="1" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Confirmar</button>
-                </div>
-            </form>
+            <div class="modal-body d-flex flex-column gap-2">
+                <a id="btnEditarModal" class="btn btn-warning w-100">✏️ Editar</a>
+                <button id="btnEntradaModal" class="btn btn-primary w-100">Entrada</button>
+                <button id="btnSaidaModal" class="btn btn-danger w-100">Saída</button>
+            </div>
         </div>
     </div>
 </div>
 
-@section Styles {
-    <style>
-        .filtro-destaque { background: #f1f8f5; border-left: 6px solid #198754; }
-    </style>
-}
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        const modalMov = new bootstrap.Modal(document.getElementById("movModal"));
+        const produtos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
 
-        function abrirModal(id, tipo) {
-            document.getElementById("movId").value = id;
-            document.getElementById("movForm").action = "/Produto/" + tipo;
-            document.getElementById("movModalTitulo").innerText = tipo;
-            document.getElementById("movQuantidade").value = 1;
-            modalMov.show();
-        }
+        // === Gráficos ===
+        document.addEventListener("DOMContentLoaded", () => {
+            const categorias = produtos.map(p => p.Categoria);
+            const countsCat = {};
+            categorias.forEach(c => countsCat[c] = (countsCat[c]||0)+1);
 
-        // === Filtros avançados ===
+            new Chart(document.getElementById('graficoPizza'), {
+                type: 'pie',
+                data: { labels: Object.keys(countsCat), datasets: [{ data: Object.values(countsCat), backgroundColor:['#007bff','#28a745','#ffc107','#17a2b8','#dc3545'] }] },
+                options: { responsive:true, maintainAspectRatio:false }
+            });
+
+            const nomes = produtos.map(p=>p.Nome);
+            const estoques = produtos.map(p=>p.Estoque);
+
+            new Chart(document.getElementById('graficoDonut'), {
+                type:'doughnut',
+                data:{ labels:nomes, datasets:[{ data:estoques, backgroundColor:['#007bff','#28a745','#ffc107','#17a2b8','#dc3545'] }] },
+                options:{ cutout:"65%", maintainAspectRatio:false }
+            });
+
+            const totalProdutos = produtos.length;
+            const estoqueCritico = produtos.filter(p=>p.Estoque<5).length;
+            const estoquePositivo = produtos.filter(p=>p.Estoque>0).length;
+
+            new Chart(document.getElementById('graficoBarra'), {
+                type:'bar',
+                data:{ labels:["Total","Estoque >0","Estoque <5"], datasets:[{ data:[totalProdutos,estoquePositivo,estoqueCritico], backgroundColor:['#0d6efd','#198754','#fd7e14'] }] },
+                options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true } } }
+            });
+        });
+
+        // === Filtros ===
         function aplicarFiltros() {
             const nome = document.getElementById("filtroNome").value.toLowerCase();
             const categoria = document.getElementById("filtroCategoria").value;
@@ -207,62 +226,53 @@
             const precoMax = parseFloat(document.getElementById("filtroPreco").value);
             const estoqueMin = parseInt(document.getElementById("filtroEstoque").value);
 
-            document.querySelectorAll("#produtosTabela tr").forEach(tr => {
+            document.querySelectorAll("#produtosTabela tr").forEach(tr=>{
                 const td = tr.querySelectorAll("td");
                 const nomeProd = td[1].innerText.toLowerCase();
                 const categoriaProd = td[2].innerText;
                 const fornecedorProd = td[3].innerText;
                 const estoqueProd = parseInt(td[8].innerText);
-                const precoProd = parseFloat(td[9].innerText.replace("R$", "").replace(",", ".").trim());
+                const precoProd = parseFloat(td[9].innerText.replace("R$","").replace(",","."))
 
-                let visivel = true;
-                if (nome && !nomeProd.includes(nome)) visivel = false;
-                if (categoria && categoriaProd !== categoria) visivel = false;
-                if (fornecedor && fornecedorProd !== fornecedor) visivel = false;
-                if (!isNaN(precoMax) && precoProd > precoMax) visivel = false;
-                if (!isNaN(estoqueMin) && estoqueProd < estoqueMin) visivel = false;
+                let visivel=true;
+                if(nome && !nomeProd.includes(nome)) visivel=false;
+                if(categoria && categoriaProd!==categoria) visivel=false;
+                if(fornecedor && fornecedorProd!==fornecedor) visivel=false;
+                if(!isNaN(precoMax) && precoProd>precoMax) visivel=false;
+                if(!isNaN(estoqueMin) && estoqueProd<estoqueMin) visivel=false;
 
-                tr.style.display = visivel ? "" : "none";
+                tr.style.display=visivel?"":"none";
             });
         }
 
         function limparFiltros() {
-            document.getElementById("filtroNome").value = "";
-            document.getElementById("filtroCategoria").value = "";
-            document.getElementById("filtroFornecedor").value = "";
-            document.getElementById("filtroPreco").value = "";
-            document.getElementById("filtroEstoque").value = "";
+            document.getElementById("filtroNome").value="";
+            document.getElementById("filtroCategoria").value="";
+            document.getElementById("filtroFornecedor").value="";
+            document.getElementById("filtroPreco").value="";
+            document.getElementById("filtroEstoque").value="";
             aplicarFiltros();
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            // === Gráfico Pizza ===
-            const categorias = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Categoria)));
-            const countsCat = {};
-            categorias.forEach(c => countsCat[c] = (countsCat[c] || 0) + 1);
+        // === Modal Mobile ===
+        function abrirAcoesModal(id){
+            document.getElementById("btnEditarModal").href=`/Produto/Edit/${id}`;
+            document.getElementById("btnEntradaModal").onclick=()=>abrirEntradaModal(id);
+            document.getElementById("btnSaidaModal").onclick=()=>abrirSaidaModal(id);
 
-            new Chart(document.getElementById('graficoPizza'), {
-                type: 'pie',
-                data: { labels: Object.keys(countsCat), datasets: [{ data: Object.values(countsCat), backgroundColor: ['#007bff','#28a745','#ffc107','#17a2b8','#dc3545'] }] },
-                options: { responsive:true, maintainAspectRatio:false }
-            });
+            new bootstrap.Modal(document.getElementById("acoesModal")).show();
+        }
 
-            // === Gráfico Donut ===
-            const estoques = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Estoque)));
-            const nomes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => p.Nome)));
+        function abrirEntradaModal(id){
+            const qtd = prompt("Quantidade de entrada:");
+            if(!qtd||isNaN(qtd)||qtd<=0) return;
+            fetch(`/Produto/Entrada?id=${id}&quantidade=${qtd}`,{method:'POST'}).then(()=>location.reload());
+        }
 
-            new Chart(document.getElementById('graficoDonut'), {
-                type: 'doughnut',
-                data: { labels: nomes, datasets: [{ data: estoques, backgroundColor: ['#0d6efd','#198754','#ffc107','#fd7e14','#6f42c1'] }] },
-                options: { cutout: '60%', responsive:true, maintainAspectRatio:false }
-            });
-
-            // === Gráfico Barras ===
-            new Chart(document.getElementById('graficoBarra'), {
-                type: 'bar',
-                data: { labels: nomes, datasets:[{ label:'Estoque', data:estoques, backgroundColor:'#17a2b8' }] },
-                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-            });
-        });
+        function abrirSaidaModal(id){
+            const qtd = prompt("Quantidade de saída:");
+            if(!qtd||isNaN(qtd)||qtd<=0) return;
+            fetch(`/Produto/Saida?id=${id}&quantidade=${qtd}`,{method:'POST'}).then(()=>location.reload());
+        }
     </script>
 }
