@@ -35,61 +35,36 @@ namespace MeuSistema.Controllers
         }
 
         // =========================
-        // GET: /Documento
+        // INDEX
         // =========================
         public IActionResult Index()
         {
-            var docs = CarregarDocumentos();
+            var documentos = CarregarDocumentos();
             var clientes = CarregarClientes();
 
-            // ===== CARDS =====
             ViewBag.TotalClientes = clientes.Count;
-            ViewBag.TotalDocumentos = docs.Count;
-            ViewBag.TotalVendas = 0; // ajuste depois se quiser
+            ViewBag.TotalDocumentos = documentos.Count;
+            ViewBag.TotalVendas = 45000;
 
-            // ===== GRÁFICOS =====
-
-            // Pizza / Donut → documentos por categoria
-            var docsPorCategoria = docs
-                .GroupBy(d => d.Categoria)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            ViewBag.Categorias = docsPorCategoria.Keys.ToList();
-            ViewBag.ValoresCategorias = docsPorCategoria.Values.ToList();
-
-            // Barras → documentos por cliente
-            var docsPorCliente = docs
-                .GroupBy(d => d.Nome)
-                .Select(g => new
-                {
-                    Cliente = g.Key,
-                    Quantidade = g.Count()
-                })
-                .OrderByDescending(x => x.Quantidade)
-                .ToList();
-
-            ViewBag.Clientes = docsPorCliente.Select(x => x.Cliente).ToList();
-            ViewBag.DocumentosPorCliente = docsPorCliente.Select(x => x.Quantidade).ToList();
-
-            return View(docs);
+            return View(documentos);
         }
 
         // =========================
-        // GET: /Documento/Upload
+        // UPLOAD (GET)
         // =========================
         public IActionResult Upload()
         {
             ViewBag.Clientes = CarregarClientes()
                 .Select(c => c.Nome)
                 .Distinct()
-                .OrderBy(n => n)
+                .OrderBy(c => c)
                 .ToList();
 
             return View();
         }
 
         // =========================
-        // POST: /Documento/Upload
+        // UPLOAD (POST)
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -98,10 +73,10 @@ namespace MeuSistema.Controllers
             if (string.IsNullOrWhiteSpace(cliente) || arquivos == null || arquivos.Count == 0)
             {
                 TempData["Erro"] = "Informe o cliente e selecione ao menos um arquivo.";
-                return RedirectToAction("Upload");
+                return RedirectToAction(nameof(Upload));
             }
 
-            var docs = CarregarDocumentos();
+            var documentos = CarregarDocumentos();
 
             var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
             var pastaCliente = Path.Combine(webRoot, "docs", SanitizeFolder(cliente));
@@ -109,100 +84,104 @@ namespace MeuSistema.Controllers
 
             foreach (var arquivo in arquivos)
             {
-                if (arquivo?.Length > 0)
+                if (arquivo.Length == 0) continue;
+
+                var nomeArquivo = Path.GetFileName(arquivo.FileName);
+                var caminhoFisico = Path.Combine(pastaCliente, nomeArquivo);
+
+                using (var stream = new FileStream(caminhoFisico, FileMode.Create))
                 {
-                    var nomeArquivo = Path.GetFileName(arquivo.FileName);
-                    var caminhoFisico = Path.Combine(pastaCliente, nomeArquivo);
-
-                    using (var stream = new FileStream(caminhoFisico, FileMode.Create))
-                    {
-                        arquivo.CopyTo(stream);
-                    }
-
-                    var novoId = docs.Any() ? docs.Max(d => d.Id) + 1 : 1;
-
-                    docs.Add(new Documento
-                    {
-                        Id = novoId,
-                        Nome = cliente,
-                        Categoria = string.IsNullOrWhiteSpace(categoria) ? "Documento" : categoria,
-                        Caminho = $"/docs/{SanitizeFolder(cliente)}/{nomeArquivo}",
-                        DataUpload = DateTime.Now
-                    });
+                    arquivo.CopyTo(stream);
                 }
+
+                var novoId = documentos.Any() ? documentos.Max(d => d.Id) + 1 : 1;
+
+                documentos.Add(new Documento
+                {
+                    Id = novoId,
+                    Nome = cliente,
+                    Categoria = string.IsNullOrWhiteSpace(categoria) ? "Documento" : categoria,
+                    Caminho = $"/docs/{SanitizeFolder(cliente)}/{nomeArquivo}",
+                    DataUpload = DateTime.Now
+                });
             }
 
-            SalvarDocumentos(docs);
+            SalvarDocumentos(documentos);
+            GarantirCliente(cliente);
 
-            TempData["Sucesso"] = "Upload realizado com sucesso.";
-            return RedirectToAction("Index");
+            TempData["Sucesso"] = "Documento enviado com sucesso.";
+            return RedirectToAction(nameof(Index));
         }
 
         // =========================
-        // POST: Criar Cliente
+        // CRIAR CLIENTE (OPCIONAL)
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CriarCliente(string nome)
         {
             if (string.IsNullOrWhiteSpace(nome))
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
 
-            var clientes = CarregarClientes();
-            var novoId = clientes.Any() ? clientes.Max(c => c.Id) + 1 : 1;
-
-            clientes.Add(new Cliente
-            {
-                Id = novoId,
-                Nome = nome
-            });
-
-            SalvarClientes(clientes);
-            return RedirectToAction("Index");
+            GarantirCliente(nome);
+            return RedirectToAction(nameof(Index));
         }
 
         // =========================
-        // HELPERS
+        // HELPERS JSON (IGUAL AOS OUTROS)
         // =========================
         private List<Documento> CarregarDocumentos()
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(_documentosPath)!);
+
             if (!System.IO.File.Exists(_documentosPath))
-                return new List<Documento>();
+                System.IO.File.WriteAllText(_documentosPath, "[]");
 
             var json = System.IO.File.ReadAllText(_documentosPath);
-            return JsonSerializer.Deserialize<List<Documento>>(json, _jsonOptions)
-                   ?? new List<Documento>();
+            return JsonSerializer.Deserialize<List<Documento>>(json, _jsonOptions) ?? new List<Documento>();
         }
 
-        private void SalvarDocumentos(List<Documento> docs)
+        private void SalvarDocumentos(List<Documento> documentos)
         {
-            var json = JsonSerializer.Serialize(docs, _jsonOptions);
             Directory.CreateDirectory(Path.GetDirectoryName(_documentosPath)!);
+            var json = JsonSerializer.Serialize(documentos, _jsonOptions);
             System.IO.File.WriteAllText(_documentosPath, json);
         }
 
         private List<Cliente> CarregarClientes()
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(_clientesPath)!);
+
             if (!System.IO.File.Exists(_clientesPath))
-                return new List<Cliente>();
+                System.IO.File.WriteAllText(_clientesPath, "[]");
 
             var json = System.IO.File.ReadAllText(_clientesPath);
-            return JsonSerializer.Deserialize<List<Cliente>>(json, _jsonOptions)
-                   ?? new List<Cliente>();
+            return JsonSerializer.Deserialize<List<Cliente>>(json, _jsonOptions) ?? new List<Cliente>();
         }
 
         private void SalvarClientes(List<Cliente> clientes)
         {
-            var json = JsonSerializer.Serialize(clientes, _jsonOptions);
             Directory.CreateDirectory(Path.GetDirectoryName(_clientesPath)!);
+            var json = JsonSerializer.Serialize(clientes, _jsonOptions);
             System.IO.File.WriteAllText(_clientesPath, json);
         }
 
-        private static string SanitizeFolder(string name)
+        private void GarantirCliente(string nome)
+        {
+            var clientes = CarregarClientes();
+
+            if (!clientes.Any(c => c.Nome.Equals(nome, StringComparison.OrdinalIgnoreCase)))
+            {
+                var novoId = clientes.Any() ? clientes.Max(c => c.Id) + 1 : 1;
+                clientes.Add(new Cliente { Id = novoId, Nome = nome });
+                SalvarClientes(clientes);
+            }
+        }
+
+        private static string SanitizeFolder(string nome)
         {
             var invalid = Path.GetInvalidFileNameChars();
-            var valid = new string(name.Select(ch => invalid.Contains(ch) ? '_' : ch).ToArray());
-            return valid.Trim();
+            return new string(nome.Select(c => invalid.Contains(c) ? '_' : c).ToArray()).Trim();
         }
     }
 }
