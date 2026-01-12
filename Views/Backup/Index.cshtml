@@ -57,12 +57,12 @@
                         </div>
                         <small class="text-muted d-block mt-2">
                             Os arquivos listados são da pasta <code>Data</code>.
+                            <br />Os backups exportados já vêm com <strong>data/hora no nome</strong> para facilitar a organização.
                         </small>
                     </div>
 
-                    <!-- BOTÕES PDF (ÚNICA CORREÇÃO AQUI) -->
+                    <!-- BOTÕES PDF -->
                     <div class="d-flex flex-wrap gap-2 mt-4 mb-3 justify-content-center">
-
                         <a asp-controller="Relatorio"
                            asp-action="Financeiro"
                            target="_blank"
@@ -76,7 +76,6 @@
                            class="btn btn-success">
                             📦 PDF Produto / Estoque
                         </a>
-
                     </div>
 
                     <!-- ALERTA -->
@@ -86,6 +85,7 @@
                             <li>Importar um backup total substituirá todos os dados existentes.</li>
                             <li>Importar um arquivo mescla com os dados existentes.</li>
                             <li>Relatórios PDF não alteram dados.</li>
+                            <li><strong>Os backups exportados já vêm com data/hora no nome</strong>, facilitando a organização dos arquivos.</li>
                         </ul>
                     </div>
 
@@ -96,12 +96,54 @@
     </div>
 </div>
 
+<!-- TOASTS -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center gap-2" id="toastMessage">
+                <!-- Ícone + Mensagem -->
+            </div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', carregarArquivos);
 
+        function showToast(message, type = "success") {
+            const toastEl = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            // Definir ícone e cor
+            let icon = "";
+            let bgClass = "";
+            switch (type) {
+                case "success":
+                    icon = "✅";
+                    bgClass = "text-bg-success";
+                    break;
+                case "error":
+                    icon = "❌";
+                    bgClass = "text-bg-danger";
+                    break;
+                case "info":
+                    icon = "ℹ️";
+                    bgClass = "text-bg-primary";
+                    break;
+            }
+
+            toastMessage.innerHTML = `${icon} ${message}`;
+            toastEl.className = `toast align-items-center border-0 ${bgClass}`;
+
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
         function exportarTudo() {
             window.location.href = '/Backup/ExportarTudo';
+            showToast("Backup completo exportado com sucesso!", "success");
         }
 
         async function importarTudo(event) {
@@ -111,13 +153,17 @@
             const formData = new FormData();
             formData.append("arquivo", file);
 
-            await fetch('/Backup/ImportarTudo', {
+            const resp = await fetch('/Backup/ImportarTudo', {
                 method: 'POST',
                 body: formData
             });
 
-            alert("✅ Backup total importado com sucesso!");
-            location.reload();
+            if (resp.ok) {
+                showToast("Backup total importado com sucesso!", "success");
+                location.reload();
+            } else {
+                showToast("Erro ao importar backup total.", "error");
+            }
         }
 
         async function importarArquivo(event) {
@@ -127,13 +173,17 @@
             const formData = new FormData();
             formData.append("arquivo", file);
 
-            await fetch('/Backup/ImportarArquivo', {
+            const resp = await fetch('/Backup/ImportarArquivo', {
                 method: 'POST',
                 body: formData
             });
 
-            alert("✅ Arquivo importado com sucesso!");
-            location.reload();
+            if (resp.ok) {
+                showToast("Arquivo importado com sucesso!", "success");
+                location.reload();
+            } else {
+                showToast("Erro ao importar arquivo.", "error");
+            }
         }
 
         async function carregarArquivos() {
@@ -156,12 +206,13 @@
         function exportarSelecionado() {
             const nome = document.getElementById('selectArquivo').value;
             if (!nome) {
-                alert("Selecione um arquivo.");
+                showToast("Selecione um arquivo para exportar.", "info");
                 return;
             }
 
             window.location.href =
                 '/Backup/ExportarArquivo?nomeArquivo=' + encodeURIComponent(nome);
+            showToast("Arquivo exportado com sucesso!", "success");
         }
     </script>
 }

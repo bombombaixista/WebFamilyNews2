@@ -1,0 +1,51 @@
+[
+  {
+    "Id": 1,
+    "Nome": "Marco antonio",
+    "Caminho": "/docs/Marco antonio/inventario.pdf",
+    "DataUpload": "2026-01-12T08:00:24.7171585-03:00",
+    "Categoria": "Identifica\u00E7\u00E3o"
+  },
+  {
+    "Id": 2,
+    "Nome": "Marco antonio",
+    "Caminho": "/docs/Marco antonio/processo de inventario.pdf",
+    "DataUpload": "2026-01-12T08:00:24.7313342-03:00",
+    "Categoria": "Identifica\u00E7\u00E3o"
+  },
+  {
+    "Id": 3,
+    "Nome": "Marco antonio",
+    "Caminho": "/docs/Marco antonio/Final Inter Backend.pdf",
+    "DataUpload": "2026-01-12T08:01:43.8856264-03:00",
+    "Categoria": "Comprovante"
+  },
+  {
+    "Id": 4,
+    "Nome": "Marco antonio",
+    "Caminho": "/docs/Marco antonio/Final Carrefour.pdf",
+    "DataUpload": "2026-01-12T08:01:43.8936686-03:00",
+    "Categoria": "Comprovante"
+  },
+  {
+    "Id": 5,
+    "Nome": "WebFamily",
+    "Caminho": "/docs/WebFamily/studio 2.jpg",
+    "DataUpload": "2026-01-12T08:02:52.7400013-03:00",
+    "Categoria": "Outro"
+  },
+  {
+    "Id": 6,
+    "Nome": "WebFamily",
+    "Caminho": "/docs/WebFamily/Studio.jpeg",
+    "DataUpload": "2026-01-12T08:02:52.7448208-03:00",
+    "Categoria": "Outro"
+  },
+  {
+    "Id": 7,
+    "Nome": "WebFamily",
+    "Caminho": "/docs/WebFamily/WebFamily.png",
+    "DataUpload": "2026-01-12T08:02:52.7491195-03:00",
+    "Categoria": "Outro"
+  }
+]

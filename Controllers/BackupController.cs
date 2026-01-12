@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.IO.Compression;
-using System.Text.Json;
 
 namespace Kanban.Controllers
 {
@@ -21,15 +20,18 @@ namespace Kanban.Controllers
         [HttpGet]
         public IActionResult Index() => View();
 
-        // Exporta todos os dados em um ZIP
+        // Exporta todos os dados em um ZIP com nome amigável
         [HttpGet("ExportarTudo")]
         public IActionResult ExportarTudo()
         {
-            var zipPath = Path.Combine(Path.GetTempPath(), $"backup_{Guid.NewGuid()}.zip");
+            var nomeArquivo = $"backup_{DateTime.Now:yyyyMMdd_HHmm}.zip";
+            var zipPath = Path.Combine(Path.GetTempPath(), nomeArquivo);
+
             ZipFile.CreateFromDirectory(_dataPath, zipPath);
             var bytes = System.IO.File.ReadAllBytes(zipPath);
             System.IO.File.Delete(zipPath);
-            return File(bytes, "application/zip", "backup.zip");
+
+            return File(bytes, "application/zip", nomeArquivo);
         }
 
         // Importa todos os dados, sobrescrevendo os existentes
@@ -66,7 +68,7 @@ namespace Kanban.Controllers
             return Ok(new { message = "Arquivo JSON importado com sucesso!" });
         }
 
-        // Exporta apenas um arquivo específico em ZIP
+        // Exporta apenas um arquivo específico em ZIP com nome amigável
         [HttpGet("ExportarArquivo")]
         public IActionResult ExportarArquivo(string nomeArquivo)
         {
@@ -77,7 +79,9 @@ namespace Kanban.Controllers
             if (!System.IO.File.Exists(caminhoArquivo))
                 return NotFound($"Arquivo '{nomeArquivo}' não encontrado.");
 
-            var zipPath = Path.Combine(Path.GetTempPath(), $"file_{Guid.NewGuid()}.zip");
+            var nomeZip = $"{Path.GetFileNameWithoutExtension(nomeArquivo)}_{DateTime.Now:yyyyMMdd_HHmm}.zip";
+            var zipPath = Path.Combine(Path.GetTempPath(), nomeZip);
+
             using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
             {
                 zip.CreateEntryFromFile(caminhoArquivo, nomeArquivo);
@@ -86,7 +90,7 @@ namespace Kanban.Controllers
             var bytes = System.IO.File.ReadAllBytes(zipPath);
             System.IO.File.Delete(zipPath);
 
-            return File(bytes, "application/zip", $"{nomeArquivo}.zip");
+            return File(bytes, "application/zip", nomeZip);
         }
 
         // Lista todos os arquivos disponíveis na pasta Data

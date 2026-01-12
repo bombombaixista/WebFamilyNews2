@@ -1,36 +1,90 @@
 ﻿@model List<Kanban.Models.Produto>
 
+<style>
+    /* ===== FIX RESPONSIVO (Razor-safe) ===== */
+    @@media (max-width: 576px) {
+        /* CARDS */
+        .dashboard-card h5 {
+            font-size: 0.65rem !important;
+            margin-bottom: 2px;
+            line-height: 1.1;
+        }
+
+        .dashboard-card h3 {
+            font-size: 0.95rem !important;
+            font-weight: 600;
+            line-height: 1.1;
+        }
+
+        .dashboard-card .card-body {
+            padding: 0.5rem;
+            text-align: center;
+        }
+        /* GRÁFICOS */
+        .grafico-box {
+            width: 140px;
+            height: 140px;
+        }
+        /* AÇÕES */
+        .acoes-desktop {
+            display: none;
+        }
+
+        .acoes-mobile {
+            display: block;
+        }
+    }
+
+    @@media (min-width: 577px) {
+        .grafico-box {
+            width: 200px;
+            height: 200px;
+        }
+
+        .acoes-mobile {
+            display: none;
+        }
+    }
+
+    .grafico-box {
+        margin: auto;
+    }
+</style>
+
 <div class="container mt-4">
     <h2 class="mb-4 text-center">📊 Dashboard de Estoque</h2>
 
-    <!-- Cards de resumo -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary shadow">
+    <!-- CARDS -->
+    <div class="row mb-4 g-2">
+        <div class="col-6 col-md-3">
+            <div class="card text-white bg-primary shadow dashboard-card">
                 <div class="card-body">
                     <h5>Total de Produtos</h5>
                     <h3>@Model.Count</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success shadow">
+
+        <div class="col-6 col-md-3">
+            <div class="card text-white bg-success shadow dashboard-card">
                 <div class="card-body">
                     <h5>Estoque Total</h5>
                     <h3>@Model.Sum(p => p.Estoque)</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning shadow">
+
+        <div class="col-6 col-md-3">
+            <div class="card text-white bg-warning shadow dashboard-card">
                 <div class="card-body">
                     <h5>Valor em Estoque</h5>
                     <h3>R$ @Model.Sum(p => p.Estoque * p.Preco)</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-danger shadow">
+
+        <div class="col-6 col-md-3">
+            <div class="card text-white bg-danger shadow dashboard-card">
                 <div class="card-body">
                     <h5>Produtos Críticos</h5>
                     <h3>@Model.Count(p => p.Estoque < 5)</h3>
@@ -39,69 +93,76 @@
         </div>
     </div>
 
-    <!-- Gráficos -->
-    <div class="row mb-4">
-        <div class="col-md-4 text-center">
-            <div style="height:200px; width:200px; margin:auto;">
+    <!-- GRÁFICOS -->
+    <div class="row mb-4 text-center">
+        <div class="col-md-4 mb-3">
+            <div class="grafico-box">
                 <canvas id="graficoPizza"></canvas>
             </div>
             <small>Por Categoria</small>
         </div>
-        <div class="col-md-4 text-center">
-            <div style="height:200px; width:200px; margin:auto;">
+
+        <div class="col-md-4 mb-3">
+            <div class="grafico-box">
                 <canvas id="graficoDonut"></canvas>
             </div>
-            <small>Estoque Crítico</small>
+            <small>Estoque</small>
         </div>
-        <div class="col-md-4 text-center">
-            <div style="height:200px; width:200px; margin:auto;">
+
+        <div class="col-md-4 mb-3">
+            <div class="grafico-box">
                 <canvas id="graficoBarra"></canvas>
             </div>
             <small>Resumo</small>
         </div>
     </div>
 
-    <!-- Botões de ação -->
+    <!-- BOTÕES -->
     <div class="mb-3 text-center">
-        <a asp-action="Create" class="btn btn-success me-2">➕ Adicionar Produto</a>
+        <a asp-action="Create" class="btn btn-success me-2">➕ Produto</a>
         <a asp-action="Movimentacoes" class="btn btn-info">📜 Histórico</a>
     </div>
 
-    <!-- Filtros avançados -->
-    <div class="card shadow-sm mb-3 filtro-destaque">
+    <!-- FILTROS (RESTAURADOS) -->
+    <div class="card shadow-sm mb-3">
         <div class="card-body row g-2 align-items-end">
             <div class="col-md-3">
                 <label class="form-label">Buscar por Nome</label>
-                <input id="filtroNome" class="form-control" placeholder="Digite o nome do produto">
+                <input id="filtroNome" class="form-control">
             </div>
+
             <div class="col-md-2">
                 <label class="form-label">Categoria</label>
                 <select id="filtroCategoria" class="form-select">
                     <option value="">Todas</option>
-                    @foreach (var cat in Model.Select(p => p.Categoria).Distinct())
+                    @foreach (var c in Model.Select(x => x.Categoria).Distinct())
                     {
-                        <option>@cat</option>
+                        <option>@c</option>
                     }
                 </select>
             </div>
+
             <div class="col-md-2">
                 <label class="form-label">Fornecedor</label>
                 <select id="filtroFornecedor" class="form-select">
                     <option value="">Todos</option>
-                    @foreach (var forn in Model.Select(p => p.Fornecedor).Distinct())
+                    @foreach (var f in Model.Select(x => x.Fornecedor).Distinct())
                     {
-                        <option>@forn</option>
+                        <option>@f</option>
                     }
                 </select>
             </div>
+
             <div class="col-md-2">
                 <label class="form-label">Preço Máx.</label>
-                <input id="filtroPreco" type="number" class="form-control" placeholder="Ex: 100">
+                <input id="filtroPreco" type="number" class="form-control">
             </div>
+
             <div class="col-md-2">
                 <label class="form-label">Estoque Mín.</label>
-                <input id="filtroEstoque" type="number" class="form-control" placeholder="Ex: 10">
+                <input id="filtroEstoque" type="number" class="form-control">
             </div>
+
             <div class="col-md-1 d-grid gap-1">
                 <button class="btn btn-success" onclick="aplicarFiltros()">Filtrar</button>
                 <button class="btn btn-secondary" onclick="limparFiltros()">Limpar</button>
@@ -109,23 +170,20 @@
         </div>
     </div>
 
-    <!-- Tabela de produtos -->
+    <!-- TABELA -->
     <div class="card shadow">
         <div class="card-header bg-dark text-white">
-            <h5 class="mb-0">📦 Lista de Produtos</h5>
+            📦 Lista de Produtos
         </div>
-        <div class="card-body">
-            <table class="table table-hover table-bordered align-middle">
+
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-hover align-middle">
                 <thead class="table-secondary">
                     <tr>
                         <th>ID</th>
                         <th>Nome</th>
                         <th>Categoria</th>
                         <th>Fornecedor</th>
-                        <th>Marca</th>
-                        <th>Tamanho</th>
-                        <th>Cor</th>
-                        <th>Material</th>
                         <th>Estoque</th>
                         <th>Preço</th>
                         <th>Ações</th>
@@ -134,26 +192,25 @@
                 <tbody id="produtosTabela">
                     @foreach (var p in Model)
                     {
-                        var estoqueClass = p.Estoque < 5 ? "table-danger" : "table-light";
-                        <tr class="@estoqueClass">
+                        <tr class="@(p.Estoque < 5 ? "table-danger" : "")">
                             <td>@p.Id</td>
                             <td>@p.Nome</td>
                             <td>@p.Categoria</td>
                             <td>@p.Fornecedor</td>
-                            <td>@p.Marca</td>
-                            <td>@p.Tamanho</td>
-                            <td>@p.Cor</td>
-                            <td>@p.Material</td>
                             <td>@p.Estoque</td>
                             <td>R$ @p.Preco</td>
                             <td>
-                                <div class="d-none d-md-flex gap-1">
-                                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-warning btn-sm">✏️ Editar</a>
-                                    <button class="btn btn-primary btn-sm" onclick="abrirEntradaModal(@p.Id)">Entrada</button>
-                                    <button class="btn btn-danger btn-sm" onclick="abrirSaidaModal(@p.Id)">Saída</button>
+                                <div class="acoes-desktop d-flex gap-1">
+                                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-warning btn-sm">✏️</a>
+                                    <button class="btn btn-primary btn-sm" onclick="movimentar(@p.Id, 'entrada')">➕</button>
+                                    <button class="btn btn-danger btn-sm" onclick="movimentar(@p.Id, 'saida')">➖</button>
                                 </div>
-                                <div class="d-flex d-md-none">
-                                    <button class="btn btn-info btn-sm w-100" onclick="abrirAcoesModal(@p.Id)">Ações</button>
+
+                                <div class="acoes-mobile">
+                                    <button class="btn btn-secondary btn-sm w-100"
+                                            onclick="movimentar(@p.Id, 'menu')">
+                                        🔄 Movimentar
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -164,115 +221,90 @@
     </div>
 </div>
 
-<!-- Modal Mobile Ações -->
-<div class="modal fade" id="acoesModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Ações do Produto</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body d-flex flex-column gap-2">
-                <a id="btnEditarModal" class="btn btn-warning w-100">✏️ Editar</a>
-                <button id="btnEntradaModal" class="btn btn-primary w-100">Entrada</button>
-                <button id="btnSaidaModal" class="btn btn-danger w-100">Saída</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         const produtos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
 
-        // === Gráficos ===
         document.addEventListener("DOMContentLoaded", () => {
-            const categorias = produtos.map(p => p.Categoria);
-            const countsCat = {};
-            categorias.forEach(c => countsCat[c] = (countsCat[c]||0)+1);
 
-            new Chart(document.getElementById('graficoPizza'), {
+            const categorias = {};
+            produtos.forEach(p => categorias[p.Categoria] = (categorias[p.Categoria] || 0) + 1);
+
+            new Chart(graficoPizza, {
                 type: 'pie',
-                data: { labels: Object.keys(countsCat), datasets: [{ data: Object.values(countsCat), backgroundColor:['#007bff','#28a745','#ffc107','#17a2b8','#dc3545'] }] },
-                options: { responsive:true, maintainAspectRatio:false }
+                data: { labels: Object.keys(categorias), datasets: [{ data: Object.values(categorias) }] },
+                options: { maintainAspectRatio: false }
             });
 
-            const nomes = produtos.map(p=>p.Nome);
-            const estoques = produtos.map(p=>p.Estoque);
-
-            new Chart(document.getElementById('graficoDonut'), {
-                type:'doughnut',
-                data:{ labels:nomes, datasets:[{ data:estoques, backgroundColor:['#007bff','#28a745','#ffc107','#17a2b8','#dc3545'] }] },
-                options:{ cutout:"65%", maintainAspectRatio:false }
+            new Chart(graficoDonut, {
+                type: 'doughnut',
+                data: { labels: produtos.map(p => p.Nome), datasets: [{ data: produtos.map(p => p.Estoque) }] },
+                options: { cutout: '65%', maintainAspectRatio: false }
             });
 
-            const totalProdutos = produtos.length;
-            const estoqueCritico = produtos.filter(p=>p.Estoque<5).length;
-            const estoquePositivo = produtos.filter(p=>p.Estoque>0).length;
-
-            new Chart(document.getElementById('graficoBarra'), {
-                type:'bar',
-                data:{ labels:["Total","Estoque >0","Estoque <5"], datasets:[{ data:[totalProdutos,estoquePositivo,estoqueCritico], backgroundColor:['#0d6efd','#198754','#fd7e14'] }] },
-                options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true } } }
+            new Chart(graficoBarra, {
+                type: 'bar',
+                data: {
+                    labels: ['Total', 'Estoque >0', 'Críticos'],
+                    datasets: [{
+                        data: [
+                            produtos.length,
+                            produtos.filter(p => p.Estoque > 0).length,
+                            produtos.filter(p => p.Estoque < 5).length
+                        ]
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } },
+                    maintainAspectRatio: false
+                }
             });
         });
 
-        // === Filtros ===
         function aplicarFiltros() {
-            const nome = document.getElementById("filtroNome").value.toLowerCase();
-            const categoria = document.getElementById("filtroCategoria").value;
-            const fornecedor = document.getElementById("filtroFornecedor").value;
-            const precoMax = parseFloat(document.getElementById("filtroPreco").value);
-            const estoqueMin = parseInt(document.getElementById("filtroEstoque").value);
+            const nome = filtroNome.value.toLowerCase();
+            const categoria = filtroCategoria.value;
+            const fornecedor = filtroFornecedor.value;
+            const precoMax = parseFloat(filtroPreco.value);
+            const estoqueMin = parseInt(filtroEstoque.value);
 
-            document.querySelectorAll("#produtosTabela tr").forEach(tr=>{
-                const td = tr.querySelectorAll("td");
-                const nomeProd = td[1].innerText.toLowerCase();
-                const categoriaProd = td[2].innerText;
-                const fornecedorProd = td[3].innerText;
-                const estoqueProd = parseInt(td[8].innerText);
-                const precoProd = parseFloat(td[9].innerText.replace("R$","").replace(",","."))
+            document.querySelectorAll("#produtosTabela tr").forEach(tr => {
+                const td = tr.children;
+                let ok = true;
 
-                let visivel=true;
-                if(nome && !nomeProd.includes(nome)) visivel=false;
-                if(categoria && categoriaProd!==categoria) visivel=false;
-                if(fornecedor && fornecedorProd!==fornecedor) visivel=false;
-                if(!isNaN(precoMax) && precoProd>precoMax) visivel=false;
-                if(!isNaN(estoqueMin) && estoqueProd<estoqueMin) visivel=false;
+                if (nome && !td[1].innerText.toLowerCase().includes(nome)) ok = false;
+                if (categoria && td[2].innerText !== categoria) ok = false;
+                if (fornecedor && td[3].innerText !== fornecedor) ok = false;
+                if (!isNaN(precoMax) && parseFloat(td[5].innerText.replace("R$", "")) > precoMax) ok = false;
+                if (!isNaN(estoqueMin) && parseInt(td[4].innerText) < estoqueMin) ok = false;
 
-                tr.style.display=visivel?"":"none";
+                tr.style.display = ok ? "" : "none";
             });
         }
 
         function limparFiltros() {
-            document.getElementById("filtroNome").value="";
-            document.getElementById("filtroCategoria").value="";
-            document.getElementById("filtroFornecedor").value="";
-            document.getElementById("filtroPreco").value="";
-            document.getElementById("filtroEstoque").value="";
+            filtroNome.value = filtroCategoria.value =
+            filtroFornecedor.value = filtroPreco.value =
+            filtroEstoque.value = "";
             aplicarFiltros();
         }
 
-        // === Modal Mobile ===
-        function abrirAcoesModal(id){
-            document.getElementById("btnEditarModal").href=`/Produto/Edit/${id}`;
-            document.getElementById("btnEntradaModal").onclick=()=>abrirEntradaModal(id);
-            document.getElementById("btnSaidaModal").onclick=()=>abrirSaidaModal(id);
+        function movimentar(id, tipo) {
 
-            new bootstrap.Modal(document.getElementById("acoesModal")).show();
-        }
+            if (tipo === 'menu') {
+                const op = prompt("Digite: E = Entrada | S = Saída");
+                if (!op) return;
+                tipo = op.toLowerCase() === 'e' ? 'entrada' : 'saida';
+            }
 
-        function abrirEntradaModal(id){
-            const qtd = prompt("Quantidade de entrada:");
-            if(!qtd||isNaN(qtd)||qtd<=0) return;
-            fetch(`/Produto/Entrada?id=${id}&quantidade=${qtd}`,{method:'POST'}).then(()=>location.reload());
-        }
+            const q = prompt("Quantidade:");
+            if (!q || isNaN(q) || q <= 0) return;
 
-        function abrirSaidaModal(id){
-            const qtd = prompt("Quantidade de saída:");
-            if(!qtd||isNaN(qtd)||qtd<=0) return;
-            fetch(`/Produto/Saida?id=${id}&quantidade=${qtd}`,{method:'POST'}).then(()=>location.reload());
+            fetch(`/Produto/${tipo}?id=${id}&quantidade=${q}`, { method: 'POST' })
+                .then(() => location.reload());
         }
     </script>
 }

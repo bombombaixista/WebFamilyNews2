@@ -56,13 +56,13 @@
     </table>
 </div>
 
-<!-- MODAL -->
-<div class="modal fade" id="modalCliente">
+<!-- MODAL CLIENTE -->
+<div class="modal fade" id="modalCliente" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <form id="clienteForm" class="modal-content">
-            <div class="modal-header">
+            <div id="modalHeader" class="modal-header">
                 <h5 id="modalTitulo">Cliente</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="clienteId">
@@ -71,19 +71,50 @@
                     <div class="col-md-6"><input id="email" class="form-control" placeholder="Email"></div>
                     <div class="col-md-4"><input id="empresa" class="form-control" placeholder="Empresa"></div>
                     <div class="col-md-4"><input id="telefone" class="form-control" placeholder="Telefone"></div>
-                    <div class="col-md-4">
-                        <select id="origem" class="form-select">
+
+                    <!-- Origem (FANCY DROPDOWN COM ÍCONES) — visível apenas no NOVO CLIENTE -->
+                    <div id="origemFancyWrap" class="col-md-4" style="display:none;">
+                        <div class="dropdown w-100">
+                            <button class="btn btn-outline-success dropdown-toggle w-100" type="button" id="btnOrigem" data-bs-toggle="dropdown" aria-expanded="false">
+                                Escolher origem
+                            </button>
+                            <ul class="dropdown-menu w-100 text-center" aria-labelledby="btnOrigem">
+                                <li><a class="dropdown-item text-primary fw-bold" href="#" onclick="selecionarOrigem('Site')"><i class="bi bi-globe"></i></a></li>
+                                <li><a class="dropdown-item text-success fw-bold" href="#" onclick="selecionarOrigem('WhatsApp')"><i class="bi bi-whatsapp"></i></a></li>
+                                <li><a class="dropdown-item text-danger fw-bold" href="#" onclick="selecionarOrigem('Instagram')"><i class="bi bi-instagram"></i></a></li>
+                                <li><a class="dropdown-item text-info fw-bold" href="#" onclick="selecionarOrigem('Facebook')"><i class="bi bi-facebook"></i></a></li>
+                                <li><a class="dropdown-item text-warning fw-bold" href="#" onclick="selecionarOrigem('Indicação')"><i class="bi bi-person-check"></i></a></li>
+                                <li><a class="dropdown-item text-secondary fw-bold" href="#" onclick="selecionarOrigem('Outros')"><i class="bi bi-three-dots"></i></a></li>
+                            </ul>
+                        </div>
+                        <input type="hidden" id="origem">
+                        <small class="text-muted">Clique no ícone para escolher a origem.</small>
+                    </div>
+
+                    <!-- Origem (SIMPLES SELECT) — visível apenas no EDITAR CLIENTE -->
+                    <div id="origemSimpleWrap" class="col-md-4" style="display:none;">
+                        <label class="form-label">Origem</label>
+                        <select id="origemEditSelect" class="form-select">
+                            <option value="">Selecione...</option>
                             <option>Site</option>
                             <option>WhatsApp</option>
+                            <option>Instagram</option>
+                            <option>Facebook</option>
                             <option>Indicação</option>
-                            <option>Outro</option>
+                            <option>Outros</option>
                         </select>
+                    </div>
+
+                    <!-- Campo para detalhar "Outros" (aparece em ambos quando necessário) -->
+                    <div class="col-12" id="origemOutrosWrap" style="display:none;">
+                        <input id="origemOutros" class="form-control" placeholder="Detalhe a origem (ex.: Evento X, Feira Y)">
+                        <small class="text-muted">Preencha apenas se escolher “Outros”.</small>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div id="modalFooter" class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button class="btn btn-success">Salvar</button>
+                <button id="btnSalvar" class="btn btn-success" type="submit">Salvar</button>
             </div>
         </form>
     </div>
@@ -97,59 +128,64 @@
             margin: auto;
         }
     </style>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 }
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let lista=[], modal;
+        let lista = [], modal, modo = 'novo'; // 'novo' ou 'editar'
         let chartPizza, chartDonut, chartBarra;
 
-        document.addEventListener("DOMContentLoaded",()=>{
-            modal = new bootstrap.Modal(modalCliente);
+        document.addEventListener("DOMContentLoaded", () => {
+            modal = new bootstrap.Modal(document.getElementById('modalCliente'));
             carregarClientes();
         });
 
+        // Carregar clientes
         async function carregarClientes(){
             const r = await fetch('/Clientes/Listar');
             lista = await r.json();
             atualizarTudo(lista);
         }
 
+        // Filtros
         function aplicarFiltro(){
-            const nome=filtroNome.value.toLowerCase();
-            const emp=filtroEmpresa.value.toLowerCase();
+            const nome=(filtroNome.value||"").toLowerCase();
+            const emp=(filtroEmpresa.value||"").toLowerCase();
             const filtrados = lista.filter(c =>
-                (!nome || c.nome.toLowerCase().includes(nome)) &&
-                (!emp || (c.empresa||"").toLowerCase().includes(emp))
+                (!nome || (c.nome||"").toLowerCase().includes(nome)) &&
+                (!emp  || (c.empresa||"").toLowerCase().includes(emp))
             );
             atualizarTudo(filtrados);
         }
 
         function limparFiltro(){
-            filtroNome.value="";
-            filtroEmpresa.value="";
+            filtroNome.value=""; filtroEmpresa.value="";
             atualizarTudo(lista);
         }
 
+        // Atualização geral
         function atualizarTudo(d){
             dashTotal.innerText=d.length;
             dashEmpresas.innerText=[...new Set(d.map(c=>c.empresa).filter(x=>x))].length;
-            dashOrigens.innerText=[...new Set(d.map(c=>c.origem))].length;
+            dashOrigens.innerText=[...new Set(d.map(c=>c.origem).filter(x=>x))].length;
             dashMes.innerText=d.length;
             renderTabela(d);
             atualizarGraficos(d);
         }
 
+        // Tabela
         function renderTabela(d){
             clientesTable.innerHTML="";
             d.forEach(c=>{
                 clientesTable.innerHTML+=`
                 <tr>
-                    <td>${c.nome}</td>
+                    <td>${c.nome||"-"}</td>
                     <td>${c.email||"-"}</td>
                     <td>${c.empresa||"-"}</td>
-                    <td>${c.origem}</td>
+                    <td>${c.origem||"-"}</td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-warning" onclick="editar(${c.id})">✏️</button>
                         <button class="btn btn-sm btn-danger" onclick="excluir(${c.id})">🗑️</button>
@@ -158,49 +194,140 @@
             });
         }
 
+        // Gráficos
         function atualizarGraficos(d){
             chartPizza?.destroy(); chartDonut?.destroy(); chartBarra?.destroy();
-            const emp=[...new Set(d.map(c=>c.empresa).filter(x=>x))];
-            const qtd=emp.map(e=>d.filter(c=>c.empresa===e).length);
-            chartPizza=new Chart(graficoPizza,{type:'pie',data:{labels:emp,datasets:[{data:qtd}]},options:{maintainAspectRatio:false}});
-            chartDonut=new Chart(graficoDonut,{type:'doughnut',data:{labels:emp,datasets:[{data:qtd}]},options:{cutout:'65%',maintainAspectRatio:false}});
-            chartBarra=new Chart(graficoBarra,{type:'bar',data:{labels:emp,datasets:[{data:qtd}]},options:{plugins:{legend:{display:false}},maintainAspectRatio:false}});
+            const empresas=[...new Set(d.map(c=>c.empresa).filter(x=>x))];
+            const qtdEmp=empresas.map(e=>d.filter(c=>c.empresa===e).length);
+            const origens=[...new Set(d.map(c=>c.origem).filter(x=>x))];
+            const qtdOrig=origens.map(o=>d.filter(c=>c.origem===o).length);
+
+            chartPizza=new Chart(graficoPizza,{type:'pie',data:{labels:empresas,datasets:[{data:qtdEmp}]},options:{maintainAspectRatio:false}});
+            chartDonut=new Chart(graficoDonut,{type:'doughnut',data:{labels:origens,datasets:[{data:qtdOrig}]},options:{cutout:'65%',maintainAspectRatio:false}});
+            chartBarra=new Chart(graficoBarra,{type:'bar',data:{labels:empresas,datasets:[{data:qtdEmp,backgroundColor:'#0d6efd'}]},options:{plugins:{legend:{display:false}},maintainAspectRatio:false}});
         }
 
+        // Novo cliente (apenas aqui aplicamos cores e dropdown com ícones)
         function novoCliente(){
-            clienteId.value="";
-            clienteForm.reset();
+            modo = 'novo';
+            clienteId.value=""; clienteForm.reset();
+            origem.value=""; origemOutros.value="";
+            origemFancyWrap.style.display='block';
+            origemSimpleWrap.style.display='none';
+            origemOutrosWrap.style.display='none';
+            btnOrigem.innerText="Escolher origem";
+
+            // Cores só no NOVO
+            modalHeader.classList.add('bg-success','text-white');
+            modalFooter.classList.add('bg-light');
+            document.querySelector('.btn-close').classList.add('btn-close-white');
+            btnSalvar.classList.remove('btn-primary'); btnSalvar.classList.add('btn-success');
+
             modalTitulo.innerText="Novo Cliente";
             modal.show();
         }
 
+        // Editar cliente (mantém simples, sem ícones e sem cores extras)
         function editar(id){
+            modo = 'editar';
             const c=lista.find(x=>x.id===id);
-            if(!c)return;
+            if(!c) return;
+
             clienteId.value=c.id;
-            nome.value=c.nome;
-            email.value=c.email;
-            empresa.value=c.empresa;
-            telefone.value=c.telefone;
-            origem.value=c.origem;
+            nome.value=c.nome||"";
+            email.value=c.email||"";
+            empresa.value=c.empresa||"";
+            telefone.value=c.telefone||"";
+
+            // Origem
+            origemFancyWrap.style.display='none';
+            origemSimpleWrap.style.display='block';
+
+            const o = c.origem || "";
+            let base = o;
+            let detalhe = "";
+            if (o.toLowerCase().startsWith('outros')) {
+                const parts = o.split(':');
+                base = 'Outros';
+                detalhe = parts.slice(1).join(':').trim();
+            }
+            origemEditSelect.value = base || "";
+            origemOutros.value = detalhe;
+            origemOutrosWrap.style.display = (base === 'Outros') ? 'block' : 'none';
+
+            // Remover cores extras no EDITAR
+            modalHeader.classList.remove('bg-success','text-white');
+            modalFooter.classList.remove('bg-light');
+            document.querySelector('.btn-close').classList.remove('btn-close-white');
+            btnSalvar.classList.remove('btn-success'); btnSalvar.classList.add('btn-primary');
+
             modalTitulo.innerText="Editar Cliente";
             modal.show();
         }
 
+        // Controle do dropdown com ícones (Novo Cliente)
+        function selecionarOrigem(valor){
+            origem.value = valor;
+            btnOrigem.innerText = "Origem: " + valor;
+            if(valor === 'Outros'){
+                origemOutrosWrap.style.display='block';
+            }else{
+                origemOutrosWrap.style.display='none';
+                origemOutros.value="";
+            }
+        }
+
+        // Controle do select simples (Editar Cliente)
+        origemEditSelect?.addEventListener('change',()=>{
+            const val = origemEditSelect.value;
+            if(val === 'Outros'){
+                origemOutrosWrap.style.display='block';
+            }else{
+                origemOutrosWrap.style.display='none';
+                origemOutros.value="";
+            }
+        });
+
+        // Excluir
         async function excluir(id){
-            if(!confirm("Excluir cliente?"))return;
+            if(!confirm("Excluir cliente?")) return;
             await fetch(`/Clientes/Apagar/${id}`,{method:'DELETE'});
             carregarClientes();
         }
 
+        // Salvar
         clienteForm.addEventListener("submit",async e=>{
             e.preventDefault();
             const id=clienteId.value;
+
+            // Montar origem final, dependendo do modo
+            let origemFinal = "";
+            if (modo === 'novo') {
+                origemFinal = (origem.value||"").trim();
+                const det = (origemOutros.value||"").trim();
+                if (origemFinal.toLowerCase()==='outros'){
+                    origemFinal = det ? `Outros: ${det}` : 'Outros';
+                }
+            } else {
+                const base = (origemEditSelect.value||"").trim();
+                const det = (origemOutros.value||"").trim();
+                origemFinal = base.toLowerCase()==='outros' ? (det ? `Outros: ${det}` : 'Outros') : base;
+            }
+
+            const payload = {
+                nome: nome.value,
+                email: email.value,
+                empresa: empresa.value,
+                telefone: telefone.value,
+                origem: origemFinal
+            };
+
             await fetch(id?`/Clientes/Editar/${id}`:'/Clientes/Adicionar',{
-                method:id?'PUT':'POST',
+                method: id?'PUT':'POST',
                 headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({nome:nome.value,email:email.value,empresa:empresa.value,telefone:telefone.value,origem:origem.value})
+                body:JSON.stringify(payload)
             });
+
             modal.hide();
             carregarClientes();
         });

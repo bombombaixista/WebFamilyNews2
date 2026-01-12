@@ -1,0 +1,89 @@
+﻿@{
+    ViewData["Title"] = "Upload de Documento";
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card shadow-lg border-0">
+
+                <!-- HEADER -->
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0">📤 Upload de Documento</h4>
+                    <small>Adicione documentos vinculados a um cliente</small>
+                </div>
+
+                <!-- BODY -->
+                <div class="card-body p-4">
+
+                    <form asp-action="Upload" method="post" enctype="multipart/form-data">
+
+                        <!-- CLIENTE -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                👤 Cliente
+                            </label>
+                            <input type="text"
+                                   name="cliente"
+                                   class="form-control"
+                                   placeholder="Nome do cliente"
+                                   required />
+                        </div>
+
+                        <!-- CATEGORIA -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                🗂️ Categoria
+                            </label>
+                            <select name="categoria" class="form-select" required>
+                                <option value="">Selecione...</option>
+                                <option value="Contrato">📄 Contrato</option>
+                                <option value="Proposta">📑 Proposta</option>
+                                <option value="Processo">⚖️ Processo</option>
+                                <option value="Partitura">🎼 Partitura</option>
+                                <option value="Nota Fiscal">🧾 Nota Fiscal</option>
+                                <option value="Identificação">🪪 Identificação</option>
+                                <option value="Comprovante">📌 Comprovante</option>
+                                <option value="Fotos">📷 Fotos</option>
+                                <option value="Outro">📁 Outro</option>
+                            </select>
+                        </div>
+
+                        <!-- ARQUIVOS -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                📎 Arquivos
+                            </label>
+                            <input type="file"
+                                   name="arquivos"
+                                   class="form-control"
+                                   multiple
+                                   required />
+                            <div class="form-text">
+                                Você pode selecionar mais de um arquivo
+                            </div>
+                        </div>
+
+                        <!-- BOTÕES -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                💾 Salvar Documento
+                            </button>
+
+                            <a asp-action="Index"
+                               class="btn btn-outline-secondary">
+                                ↩️ Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>

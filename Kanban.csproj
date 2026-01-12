@@ -27,6 +27,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Migrations\Kanban\" />
+	  <Folder Include="Views\NovaPasta1\" />
 	</ItemGroup>
 
 </Project>

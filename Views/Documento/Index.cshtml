@@ -1,0 +1,209 @@
+﻿@model IEnumerable<MeuSistema.Models.Documento>
+
+@{
+    var grouped = Model
+        .GroupBy(d => d.Nome)
+        .Select(g => new
+        {
+            Cliente = g.Key,
+            Quantidade = g.Count(),
+            Categorias = string.Join(", ", g.Select(x => x.Categoria).Distinct()),
+            UltimoUpload = g.Max(d => d.DataUpload),
+            Documentos = g.ToList()
+        })
+        .ToList();
+
+    var clientes = ViewBag.Clientes as List<string> ?? new List<string>();
+    var docsPorCliente = ViewBag.DocumentosPorCliente as List<int> ?? new List<int>();
+}
+
+<div class="container my-4">
+
+    <h2 class="mb-4">📊 Documentos</h2>
+
+    <!-- CARDS -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body py-2">
+                    <h6>Total de Clientes</h6>
+                    <strong>@ViewBag.TotalClientes</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body py-2">
+                    <h6>Total de Documentos</h6>
+                    <strong>@ViewBag.TotalDocumentos</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger shadow-sm">
+                <div class="card-body py-2">
+                    <h6>Total de Vendas</h6>
+                    <strong>@ViewBag.TotalVendas</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div style="width:180px;height:180px;margin:auto">
+                <canvas id="graficoPizza"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div style="width:180px;height:180px;margin:auto">
+                <canvas id="graficoDonut"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div style="width:180px;height:180px;margin:auto">
+                <canvas id="graficoBarra"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTRO -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Cliente</label>
+                    <input type="text" id="filtroCliente" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Categoria</label>
+                    <input type="text" id="filtroCategoria" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Data mínima</label>
+                    <input type="date" id="filtroData" class="form-control">
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button class="btn btn-primary mb-1" onclick="aplicarFiltros()">Filtrar</button>
+                    <button class="btn btn-secondary" onclick="limparFiltros()">Limpar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTÃO NOVO DOCUMENTO -->
+    <div class="mb-3 text-end">
+        <a asp-action="Upload" class="btn btn-success">
+            ➕ Novo Documento
+        </a>
+    </div>
+
+    <!-- TABELA -->
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Cliente</th>
+                <th>Qtd</th>
+                <th>Categorias</th>
+                <th>Último Upload</th>
+                <th>Docs</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaClientes">
+            @foreach (var item in grouped)
+            {
+                var modalId = $"modal-{item.Cliente.Replace(" ", "_")}";
+                <tr data-cliente="@item.Cliente"
+                    data-categoria="@item.Categorias"
+                    data-data="@item.UltimoUpload.ToString("yyyy-MM-dd")">
+
+                    <td>@item.Cliente</td>
+                    <td>@item.Quantidade</td>
+                    <td>@item.Categorias</td>
+                    <td>@item.UltimoUpload.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#@modalId">
+                            Abrir
+                        </button>
+
+                        <div class="modal fade" id="@modalId" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h6>Documentos de @item.Cliente</h6>
+                                        <button class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <ul class="list-group">
+                                            @foreach (var doc in item.Documentos)
+                                            {
+                                                <li class="list-group-item d-flex justify-content-between">
+                                                    <span>@System.IO.Path.GetFileName(doc.Caminho) (@doc.Categoria)</span>
+                                                    <a href="@doc.Caminho" target="_blank" class="btn btn-sm btn-outline-primary">Abrir</a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const filtroCliente = document.getElementById("filtroCliente");
+    const filtroCategoria = document.getElementById("filtroCategoria");
+    const filtroData = document.getElementById("filtroData");
+
+    function aplicarFiltros() {
+        document.querySelectorAll("#tabelaClientes tr").forEach(tr => {
+            let ok = true;
+
+            if (filtroCliente.value &&
+                !tr.dataset.cliente.toLowerCase().includes(filtroCliente.value.toLowerCase()))
+                ok = false;
+
+            if (filtroCategoria.value &&
+                !tr.dataset.categoria.toLowerCase().includes(filtroCategoria.value.toLowerCase()))
+                ok = false;
+
+            if (filtroData.value && tr.dataset.data < filtroData.value)
+                ok = false;
+
+            tr.style.display = ok ? "" : "none";
+        });
+    }
+
+    function limparFiltros() {
+        filtroCliente.value = "";
+        filtroCategoria.value = "";
+        filtroData.value = "";
+
+        document.querySelectorAll("#tabelaClientes tr").forEach(tr => tr.style.display = "");
+    }
+
+    new Chart(graficoPizza, {
+        type: 'pie',
+        data: { labels: ['Contrato', 'Proposta', 'NF'], datasets: [{ data: [10, 20, 30] }] }
+    });
+
+    new Chart(graficoDonut, {
+        type: 'doughnut',
+        data: { labels: ['A', 'B', 'C'], datasets: [{ data: [15, 25, 40] }] }
+    });
+
+    new Chart(graficoBarra, {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(clientes)),
+            datasets: [{ data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(docsPorCliente)) }]
+        }
+    });
+</script>
