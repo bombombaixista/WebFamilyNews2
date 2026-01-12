@@ -1,29 +1,28 @@
-﻿using Kanban.Models;
-using MeuSistema.Models;
+﻿using MeuSistema.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace MeuSistema.Controllers
 {
+    [Authorize]
+    [Route("[controller]")]
     public class DocumentoController : Controller
     {
         private readonly IWebHostEnvironment _env;
         private readonly string _documentosPath;
-        private readonly string _clientesPath;
         private readonly JsonSerializerOptions _jsonOptions;
 
         public DocumentoController(IWebHostEnvironment env)
         {
             _env = env;
-            _documentosPath = Path.Combine(_env.ContentRootPath, "data", "documentos.json");
-            _clientesPath = Path.Combine(_env.ContentRootPath, "data", "clientes.json");
+
+            // Corrigido: "Data" com D maiúsculo para funcionar no Railway (Linux é case-sensitive)
+            _documentosPath = Path.Combine(_env.ContentRootPath, "Data", "documentos.json");
+            Directory.CreateDirectory(Path.Combine(_env.ContentRootPath, "Data"));
 
             _jsonOptions = new JsonSerializerOptions
             {
@@ -33,15 +32,23 @@ namespace MeuSistema.Controllers
             };
         }
 
-        // GET: /Documento
+        // =========================
+        // INDEX
+        // =========================
+        [HttpGet]
         public IActionResult Index()
         {
             var docs = CarregarDocumentos();
-            var clientes = CarregarClientes();
 
-            ViewBag.TotalClientes = clientes.Count;
+            // total de clientes = quantidade de nomes distintos nos documentos
+            var totalClientes = docs.Select(d => d.Nome)
+                                    .Where(n => !string.IsNullOrWhiteSpace(n))
+                                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                                    .Count();
+
+            ViewBag.TotalClientes = totalClientes;
             ViewBag.TotalDocumentos = docs.Count;
-            ViewBag.TotalVendas = 0; // por enquanto
+            ViewBag.TotalVendas = 0;
 
             // Gráfico Pizza: quantidade por categoria
             var categorias = docs
@@ -61,18 +68,22 @@ namespace MeuSistema.Controllers
             ViewBag.Clientes = docsPorCliente.Select(c => c.Cliente).ToList();
             ViewBag.DocsPorCliente = docsPorCliente.Select(c => c.Quantidade).ToList();
 
-            return View(docs);
+            return View(docs); // passa sempre uma lista para a view
         }
 
-        // GET: /Documento/Upload
+        // =========================
+        // UPLOAD (GET)
+        // =========================
+        [HttpGet("Upload")]
         public IActionResult Upload()
         {
-            ViewBag.Clientes = CarregarClientes().Select(c => c.Nome).Distinct().OrderBy(n => n).ToList();
             return View();
         }
 
-        // POST: /Documento/Upload
-        [HttpPost]
+        // =========================
+        // UPLOAD (POST)
+        // =========================
+        [HttpPost("Upload")]
         [ValidateAntiForgeryToken]
         public IActionResult Upload(string cliente, List<IFormFile> arquivos, string categoria)
         {
@@ -116,33 +127,24 @@ namespace MeuSistema.Controllers
             return RedirectToAction("Index");
         }
 
-        // Helpers
+        // =========================
+        // HELPERS
+        // =========================
         private List<Documento> CarregarDocumentos()
         {
-            if (!System.IO.File.Exists(_documentosPath)) return new List<Documento>();
+            if (!System.IO.File.Exists(_documentosPath))
+                return new List<Documento>();
+
             var json = System.IO.File.ReadAllText(_documentosPath);
             return JsonSerializer.Deserialize<List<Documento>>(json, _jsonOptions) ?? new List<Documento>();
         }
 
         private void SalvarDocumentos(List<Documento> docs)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_documentosPath)!);
+            var dir = Path.GetDirectoryName(_documentosPath)!;
+            Directory.CreateDirectory(dir);
             var json = JsonSerializer.Serialize(docs, _jsonOptions);
             System.IO.File.WriteAllText(_documentosPath, json);
-        }
-
-        private List<Cliente> CarregarClientes()
-        {
-            if (!System.IO.File.Exists(_clientesPath)) return new List<Cliente>();
-            var json = System.IO.File.ReadAllText(_clientesPath);
-            return JsonSerializer.Deserialize<List<Cliente>>(json, _jsonOptions) ?? new List<Cliente>();
-        }
-
-        private void SalvarClientes(List<Cliente> clientes)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(_clientesPath)!);
-            var json = JsonSerializer.Serialize(clientes, _jsonOptions);
-            System.IO.File.WriteAllText(_clientesPath, json);
         }
 
         private static string SanitizeFolder(string name)
