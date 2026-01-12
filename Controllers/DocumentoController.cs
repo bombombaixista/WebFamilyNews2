@@ -1,17 +1,15 @@
 ﻿using Kanban.Models;
 using MeuSistema.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace MeuSistema.Controllers
 {
+    [Authorize]
+    [Route("[controller]")]
     public class DocumentoController : Controller
     {
         private readonly IWebHostEnvironment _env;
@@ -23,35 +21,35 @@ namespace MeuSistema.Controllers
         {
             _env = env;
 
-            _documentosPath = Path.Combine(_env.ContentRootPath, "data", "documentos.json");
-            _clientesPath = Path.Combine(_env.ContentRootPath, "data", "clientes.json");
+            // IMPORTANTE: "Data" com D maiúsculo para bater com os outros módulos (Linux é case-sensitive)
+            _documentosPath = Path.Combine(_env.ContentRootPath, "Data", "documentos.json");
+            _clientesPath = Path.Combine(_env.ContentRootPath, "Data", "clientes.json");
 
-            _jsonOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNameCaseInsensitive = true,
-                Converters = { new JsonStringEnumConverter() }
-            };
+            Directory.CreateDirectory(Path.Combine(_env.ContentRootPath, "Data"));
+
+            _jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         }
 
         // =========================
         // INDEX
         // =========================
+        [HttpGet]
         public IActionResult Index()
         {
-            var documentos = CarregarDocumentos();
+            var documentos = CarregarDocumentos(); // garante lista, nunca null
             var clientes = CarregarClientes();
 
             ViewBag.TotalClientes = clientes.Count;
             ViewBag.TotalDocumentos = documentos.Count;
             ViewBag.TotalVendas = 45000;
 
-            return View(documentos);
+            return View(documentos); // passa o Model para a view, evitando ArgumentNullException
         }
 
         // =========================
         // UPLOAD (GET)
         // =========================
+        [HttpGet("Upload")]
         public IActionResult Upload()
         {
             ViewBag.Clientes = CarregarClientes()
@@ -66,7 +64,7 @@ namespace MeuSistema.Controllers
         // =========================
         // UPLOAD (POST)
         // =========================
-        [HttpPost]
+        [HttpPost("Upload")]
         [ValidateAntiForgeryToken]
         public IActionResult Upload(string cliente, List<IFormFile> arquivos, string categoria)
         {
@@ -78,6 +76,7 @@ namespace MeuSistema.Controllers
 
             var documentos = CarregarDocumentos();
 
+            // salva arquivos em wwwroot/docs/<cliente>
             var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
             var pastaCliente = Path.Combine(webRoot, "docs", SanitizeFolder(cliente));
             Directory.CreateDirectory(pastaCliente);
@@ -90,9 +89,7 @@ namespace MeuSistema.Controllers
                 var caminhoFisico = Path.Combine(pastaCliente, nomeArquivo);
 
                 using (var stream = new FileStream(caminhoFisico, FileMode.Create))
-                {
                     arquivo.CopyTo(stream);
-                }
 
                 var novoId = documentos.Any() ? documentos.Max(d => d.Id) + 1 : 1;
 
@@ -116,7 +113,7 @@ namespace MeuSistema.Controllers
         // =========================
         // CRIAR CLIENTE (OPCIONAL)
         // =========================
-        [HttpPost]
+        [HttpPost("CriarCliente")]
         [ValidateAntiForgeryToken]
         public IActionResult CriarCliente(string nome)
         {
@@ -128,14 +125,35 @@ namespace MeuSistema.Controllers
         }
 
         // =========================
-        // HELPERS JSON (IGUAL AOS OUTROS)
+        // APIs (seguir padrão dos outros)
+        // =========================
+        [HttpGet("Listar")]
+        public IActionResult Listar()
+        {
+            var documentos = CarregarDocumentos();
+            return Ok(documentos);
+        }
+
+        [HttpDelete("Apagar/{id}")]
+        public IActionResult Apagar(int id)
+        {
+            var documentos = CarregarDocumentos();
+            var documento = documentos.FirstOrDefault(d => d.Id == id);
+            if (documento == null) return NotFound();
+
+            documentos.Remove(documento);
+            SalvarDocumentos(documentos);
+
+            return Ok(new { message = "Documento removido com sucesso!" });
+        }
+
+        // =========================
+        // HELPERS JSON
         // =========================
         private List<Documento> CarregarDocumentos()
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_documentosPath)!);
-
             if (!System.IO.File.Exists(_documentosPath))
-                System.IO.File.WriteAllText(_documentosPath, "[]");
+                return new List<Documento>();
 
             var json = System.IO.File.ReadAllText(_documentosPath);
             return JsonSerializer.Deserialize<List<Documento>>(json, _jsonOptions) ?? new List<Documento>();
@@ -143,17 +161,16 @@ namespace MeuSistema.Controllers
 
         private void SalvarDocumentos(List<Documento> documentos)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_documentosPath)!);
+            var dir = Path.GetDirectoryName(_documentosPath)!;
+            Directory.CreateDirectory(dir);
             var json = JsonSerializer.Serialize(documentos, _jsonOptions);
             System.IO.File.WriteAllText(_documentosPath, json);
         }
 
         private List<Cliente> CarregarClientes()
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_clientesPath)!);
-
             if (!System.IO.File.Exists(_clientesPath))
-                System.IO.File.WriteAllText(_clientesPath, "[]");
+                return new List<Cliente>();
 
             var json = System.IO.File.ReadAllText(_clientesPath);
             return JsonSerializer.Deserialize<List<Cliente>>(json, _jsonOptions) ?? new List<Cliente>();
@@ -161,7 +178,8 @@ namespace MeuSistema.Controllers
 
         private void SalvarClientes(List<Cliente> clientes)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_clientesPath)!);
+            var dir = Path.GetDirectoryName(_clientesPath)!;
+            Directory.CreateDirectory(dir);
             var json = JsonSerializer.Serialize(clientes, _jsonOptions);
             System.IO.File.WriteAllText(_clientesPath, json);
         }
