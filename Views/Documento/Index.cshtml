@@ -13,8 +13,17 @@
         })
         .ToList();
 
-    var clientes = ViewBag.Clientes as List<string> ?? new List<string>();
-    var docsPorCliente = ViewBag.DocumentosPorCliente as List<int> ?? new List<int>();
+    var clientes = ViewBag.Clientes as List<string> ?? grouped.Select(g => g.Cliente).ToList();
+    var docsPorCliente = ViewBag.DocumentosPorCliente as List<int> ?? grouped.Select(g => g.Quantidade).ToList();
+
+    // Para gráfico de categorias
+    var categorias = grouped
+        .SelectMany(g => g.Documentos)
+        .GroupBy(d => d.Categoria)
+        .Select(g => new { Categoria = g.Key, Quantidade = g.Count() })
+        .ToList();
+    var categoriasLabels = categorias.Select(c => c.Categoria).ToList();
+    var categoriasValues = categorias.Select(c => c.Quantidade).ToList();
 }
 
 <div class="container my-4">
@@ -43,7 +52,7 @@
             <div class="card text-white bg-danger shadow-sm">
                 <div class="card-body py-2">
                     <h6>Total de Vendas</h6>
-                    <strong>@ViewBag.TotalVendas</strong>
+                    <strong>R$ 0</strong>
                 </div>
             </div>
         </div>
@@ -55,16 +64,19 @@
             <div style="width:180px;height:180px;margin:auto">
                 <canvas id="graficoPizza"></canvas>
             </div>
+            <small>Por Categoria</small>
         </div>
         <div class="col-md-4">
             <div style="width:180px;height:180px;margin:auto">
                 <canvas id="graficoDonut"></canvas>
             </div>
+            <small>Por Cliente</small>
         </div>
         <div class="col-md-4">
             <div style="width:180px;height:180px;margin:auto">
                 <canvas id="graficoBarra"></canvas>
             </div>
+            <small>Documentos por Cliente</small>
         </div>
     </div>
 
@@ -94,9 +106,7 @@
 
     <!-- BOTÃO NOVO DOCUMENTO -->
     <div class="mb-3 text-end">
-        <a asp-action="Upload" class="btn btn-success">
-            ➕ Novo Documento
-        </a>
+        <a asp-action="Upload" class="btn btn-success">➕ Novo Documento</a>
     </div>
 
     <!-- TABELA -->
@@ -123,9 +133,7 @@
                     <td>@item.Categorias</td>
                     <td>@item.UltimoUpload.ToString("dd/MM/yyyy")</td>
                     <td>
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#@modalId">
-                            Abrir
-                        </button>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#@modalId">Abrir</button>
 
                         <div class="modal fade" id="@modalId" tabindex="-1">
                             <div class="modal-dialog modal-lg">
@@ -156,7 +164,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
     const filtroCliente = document.getElementById("filtroCliente");
     const filtroCategoria = document.getElementById("filtroCategoria");
@@ -165,18 +172,9 @@
     function aplicarFiltros() {
         document.querySelectorAll("#tabelaClientes tr").forEach(tr => {
             let ok = true;
-
-            if (filtroCliente.value &&
-                !tr.dataset.cliente.toLowerCase().includes(filtroCliente.value.toLowerCase()))
-                ok = false;
-
-            if (filtroCategoria.value &&
-                !tr.dataset.categoria.toLowerCase().includes(filtroCategoria.value.toLowerCase()))
-                ok = false;
-
-            if (filtroData.value && tr.dataset.data < filtroData.value)
-                ok = false;
-
+            if(filtroCliente.value && !tr.dataset.cliente.toLowerCase().includes(filtroCliente.value.toLowerCase())) ok = false;
+            if(filtroCategoria.value && !tr.dataset.categoria.toLowerCase().includes(filtroCategoria.value.toLowerCase())) ok = false;
+            if(filtroData.value && tr.dataset.data < filtroData.value) ok = false;
             tr.style.display = ok ? "" : "none";
         });
     }
@@ -185,25 +183,38 @@
         filtroCliente.value = "";
         filtroCategoria.value = "";
         filtroData.value = "";
-
         document.querySelectorAll("#tabelaClientes tr").forEach(tr => tr.style.display = "");
     }
 
-    new Chart(graficoPizza, {
+    const cores = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1', '#fd7e14', '#20c997'];
+
+    // Pizza (categorias)
+    new Chart(document.getElementById('graficoPizza'), {
         type: 'pie',
-        data: { labels: ['Contrato', 'Proposta', 'NF'], datasets: [{ data: [10, 20, 30] }] }
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoriasLabels)),
+            datasets: [{ data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoriasValues)), backgroundColor: cores }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
     });
 
-    new Chart(graficoDonut, {
+    // Donut (clientes)
+    new Chart(document.getElementById('graficoDonut'), {
         type: 'doughnut',
-        data: { labels: ['A', 'B', 'C'], datasets: [{ data: [15, 25, 40] }] }
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(clientes)),
+            datasets: [{ data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(docsPorCliente)), backgroundColor: cores }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '60%' }
     });
 
-    new Chart(graficoBarra, {
+    // Barra (documentos por cliente)
+    new Chart(document.getElementById('graficoBarra'), {
         type: 'bar',
         data: {
             labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(clientes)),
-            datasets: [{ data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(docsPorCliente)) }]
-        }
+            datasets: [{ label: 'Documentos', data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(docsPorCliente)), backgroundColor: '#20c997' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
     });
 </script>
