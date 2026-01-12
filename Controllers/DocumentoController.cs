@@ -41,16 +41,25 @@ namespace MeuSistema.Controllers
 
             ViewBag.TotalClientes = clientes.Count;
             ViewBag.TotalDocumentos = docs.Count;
-            ViewBag.TotalVendas = 0; // zerado por enquanto
+            ViewBag.TotalVendas = 0; // por enquanto
 
-            // Para gráficos reais
-            var docsPorClienteDict = docs
+            // Gráfico Pizza: quantidade por categoria
+            var categorias = docs
+                .GroupBy(d => d.Categoria)
+                .Select(g => new { Categoria = g.Key, Quantidade = g.Count() })
+                .ToList();
+
+            ViewBag.Categorias = categorias.Select(c => c.Categoria).ToList();
+            ViewBag.Quantidades = categorias.Select(c => c.Quantidade).ToList();
+
+            // Donut: quantidade de documentos por cliente
+            var docsPorCliente = docs
                 .GroupBy(d => d.Nome)
-                .OrderBy(g => g.Key)
-                .ToDictionary(g => g.Key, g => g.Count());
+                .Select(g => new { Cliente = g.Key, Quantidade = g.Count() })
+                .ToList();
 
-            ViewBag.Clientes = docsPorClienteDict.Keys.ToList();
-            ViewBag.DocumentosPorCliente = docsPorClienteDict.Values.ToList();
+            ViewBag.Clientes = docsPorCliente.Select(c => c.Cliente).ToList();
+            ViewBag.DocsPorCliente = docsPorCliente.Select(c => c.Quantidade).ToList();
 
             return View(docs);
         }
@@ -127,6 +136,13 @@ namespace MeuSistema.Controllers
             if (!System.IO.File.Exists(_clientesPath)) return new List<Cliente>();
             var json = System.IO.File.ReadAllText(_clientesPath);
             return JsonSerializer.Deserialize<List<Cliente>>(json, _jsonOptions) ?? new List<Cliente>();
+        }
+
+        private void SalvarClientes(List<Cliente> clientes)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_clientesPath)!);
+            var json = JsonSerializer.Serialize(clientes, _jsonOptions);
+            System.IO.File.WriteAllText(_clientesPath, json);
         }
 
         private static string SanitizeFolder(string name)
